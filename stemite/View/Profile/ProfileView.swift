@@ -1,14 +1,11 @@
 import SwiftUI
 
-
 struct RoleModel {
     var id: UUID = UUID()
     var name: String
     var title: String
     var organization: String
     var image: String // In a real app, this would be an actual image
-    var bio: String
-    var career: String // Associated career field
 }
 
 struct Workplace {
@@ -16,190 +13,69 @@ struct Workplace {
     var name: String
     var description: String
     var icon: String // This would be an image name in a real app
-    var details: String
-    var career: String // Associated career field
+}
+
+struct CareerInfo {
+    var id: UUID = UUID()
+    var name: String
+    var description: String
+    var skills: [String]
+    var jobOpportunities: String
 }
 
 struct ProfileView: View {
     var user: User
     @State private var selectedCareer: String = "Computer Science"
-    @State private var showRoleModelDetails: Bool = false
-    @State private var selectedRoleModel: RoleModel?
-    @State private var showWorkplaceDetails: Bool = false
-    @State private var selectedWorkplace: Workplace?
+    @State private var showRoleModelDetail: Bool = false
+    @State private var showWorkplaceDetail: Bool = false
+    @State private var showCareerDetail: Bool = false
+    @State private var showCareersLocationView: Bool = false
+    @State private var selectedRoleModel: RoleModel? = nil
+    @State private var selectedWorkplace: Workplace? = nil
     
-    // Example data - organized by career
-    let roleModelsData: [RoleModel] = [
-        // Computer Science Role Models
-        RoleModel(
-            name: "Dr. Fei-Fei Li",
-            title: "AI Pioneer",
-            organization: "Stanford University",
-            image: "feifei",
-            bio: "Dr. Fei-Fei Li is a Professor of Computer Science at Stanford University and Co-Director of Stanford's Human-Centered AI Institute. She served as VP at Google and Chief Scientist of AI/ML at Google Cloud. Her research focuses on computer vision, machine learning, and AI. She is known for creating ImageNet, a dataset that revolutionized computer vision and deep learning.",
-            career: "Computer Science"
-        ),
-        RoleModel(
-            name: "Kimberly Bryant",
-            title: "Founder",
-            organization: "Black Girls Code",
-            image: "kimberly",
-            bio: "Kimberly Bryant is an electrical engineer who founded Black Girls Code, a non-profit organization dedicated to teaching programming skills to young girls of color. With over 25 years of experience in the tech industry at companies like Genentech and Pfizer, Bryant is working to close the digital divide for girls of color.",
-            career: "Computer Science"
-        ),
-        
-        // Electrical Engineering Role Models
-        RoleModel(
-            name: "Lisa Su",
-            title: "CEO",
-            organization: "AMD",
-            image: "lisasu",
-            bio: "Dr. Lisa Su is the President and CEO of Advanced Micro Devices (AMD). Under her leadership, AMD has made significant technological advances in high-performance computing. She has a Ph.D. in Electrical Engineering from MIT and has been named one of the World's Greatest Leaders by Fortune. Before joining AMD, she worked at IBM, Texas Instruments, and Freescale Semiconductor.",
-            career: "Electrical Engineering"
-        ),
-        RoleModel(
-            name: "Limor Fried",
-            title: "Founder & CEO",
-            organization: "Adafruit Industries",
-            image: "limor",
-            bio: "Limor Fried, also known as 'Ladyada', is an electrical engineer and founder of Adafruit Industries, an open-source hardware company. She was the first female engineer to be featured on the cover of WIRED magazine and was awarded Entrepreneur of the Year by Entrepreneur magazine in 2012. She's known for her commitment to open-source hardware and STEM education.",
-            career: "Electrical Engineering"
-        ),
-        
-        // Mechanical Engineering Role Models
-        RoleModel(
-            name: "Gwynne Shotwell",
-            title: "President & COO",
-            organization: "SpaceX",
-            image: "gwynne",
-            bio: "Gwynne Shotwell is the President and Chief Operating Officer of SpaceX. She is responsible for day-to-day operations and managing customer relationships. With a background in mechanical engineering and applied mathematics, she has helped grow SpaceX from a small startup to a leading aerospace manufacturer and space transportation services company valued at over $100 billion.",
-            career: "Mechanical Engineering"
-        ),
-        RoleModel(
-            name: "Debbie Sterling",
-            title: "Founder & CEO",
-            organization: "GoldieBlox",
-            image: "debbie",
-            bio: "Debbie Sterling is a mechanical engineer and founder of GoldieBlox, a company that creates engineering toys designed specifically for girls. She developed GoldieBlox to inspire girls to pursue STEM fields. Sterling graduated from Stanford University with a degree in Mechanical Engineering and Product Design and was named one of Time's 100 Most Influential People.",
-            career: "Mechanical Engineering"
-        )
+    // Example data
+    let roleModels = [
+        RoleModel(name: "Dra. Fei-Fei Li", title: "Pionera en IA", organization: "Universidad de Stanford", image: "feifei"),
+        RoleModel(name: "Lisa Su", title: "CEO", organization: "AMD", image: "lisasu"),
+        RoleModel(name: "Reshma Saujani", title: "Fundadora", organization: "Girls Who Code", image: "reshma"),
+        RoleModel(name: "Gwynne Shotwell", title: "Presidenta", organization: "SpaceX", image: "gwynne")
     ]
     
-    let workplacesData: [Workplace] = [
-        // Computer Science Workplaces
-        Workplace(
-            name: "Google",
-            description: "Build products that billions use daily",
-            icon: "laptop",
-            details: "Google offers numerous roles for computer scientists from software engineering to AI research. You could work on products like Search, Gmail, or cutting-edge AI projects like DeepMind. The average software engineer at Google earns over $180,000 annually with generous benefits, development opportunities, and a collaborative culture.",
-            career: "Computer Science"
-        ),
-        Workplace(
-            name: "Fintech Startups",
-            description: "Transform the financial industry",
-            icon: "rocket",
-            details: "Financial technology startups like Stripe, Robinhood, and Coinbase offer fast-paced environments where computer scientists can revolutionize how people interact with money. These companies offer competitive salaries ($130,000-$200,000), equity packages, and the chance to build products used by millions of people.",
-            career: "Computer Science"
-        ),
-        Workplace(
-            name: "Research Labs",
-            description: "Push the boundaries of AI",
-            icon: "chart",
-            details: "Research labs like OpenAI, FAIR (Facebook AI Research), and Microsoft Research employ computer scientists to advance the field of artificial intelligence. These positions typically require advanced degrees but offer the opportunity to publish papers, attend conferences, and shape the future of technology.",
-            career: "Computer Science"
-        ),
-        
-        // Electrical Engineering Workplaces
-        Workplace(
-            name: "Tesla",
-            description: "Accelerate sustainable energy",
-            icon: "bolt.fill",
-            details: "Tesla employs electrical engineers to work on electric vehicles, energy storage, and solar products. Engineers at Tesla design power electronics, battery management systems, and charging solutions. The company offers competitive compensation ($120,000-$180,000) and the opportunity to work on products addressing climate change.",
-            career: "Electrical Engineering"
-        ),
-        Workplace(
-            name: "Intel",
-            description: "Design next-gen processors",
-            icon: "cpu",
-            details: "Intel is a leading semiconductor company where electrical engineers design microprocessors powering computers worldwide. At Intel, you could work on chip design, verification, or manufacturing processes. The company offers stable employment, comprehensive benefits, and average salaries around $150,000 for experienced engineers.",
-            career: "Electrical Engineering"
-        ),
-        Workplace(
-            name: "Networking Companies",
-            description: "Build the internet's backbone",
-            icon: "network",
-            details: "Companies like Cisco and Juniper Networks employ electrical engineers to design and develop networking hardware and software. These roles involve creating routers, switches, and security devices that form the internet's infrastructure, with salaries ranging from $110,000 to $170,000 depending on experience.",
-            career: "Electrical Engineering"
-        ),
-        
-        // Mechanical Engineering Workplaces
-        Workplace(
-            name: "Aerospace Companies",
-            description: "Design aircraft and spacecraft",
-            icon: "airplane",
-            details: "Companies like Boeing, Lockheed Martin, and NASA employ mechanical engineers to design aircraft, spacecraft, and propulsion systems. These positions require knowledge of fluid dynamics, materials science, and thermal systems, with salaries ranging from $90,000 to $150,000 and excellent stability.",
-            career: "Mechanical Engineering"
-        ),
-        Workplace(
-            name: "Automotive Industry",
-            description: "Create future vehicles",
-            icon: "car",
-            details: "Automotive companies like Ford, GM, and Toyota hire mechanical engineers to design vehicle systems including powertrains, chassis, and HVAC systems. The industry is rapidly evolving with electric and autonomous vehicles, creating exciting opportunities with compensation typically between $85,000 and $130,000.",
-            career: "Mechanical Engineering"
-        ),
-        Workplace(
-            name: "Medical Device Companies",
-            description: "Develop life-saving technology",
-            icon: "heart",
-            details: "Medical device manufacturers like Medtronic, Boston Scientific, and Stryker employ mechanical engineers to design equipment that improves patient outcomes. These roles combine engineering principles with healthcare applications and offer salaries from $95,000 to $140,000 with the satisfaction of creating products that save lives.",
-            career: "Mechanical Engineering"
-        )
+    let workplaces = [
+        Workplace(name: "Gigantes Tecnológicos", description: "Construye el futuro de la tecnología", icon: "laptop"),
+        Workplace(name: "Startups", description: "Crea algo nuevo", icon: "rocket"),
+        Workplace(name: "Investigación", description: "Expande los límites", icon: "chart")
     ]
     
-    // Filtered lists based on selected career
-    var filteredRoleModels: [RoleModel] {
-        roleModelsData.filter { $0.career == selectedCareer }
-    }
-    
-    var filteredWorkplaces: [Workplace] {
-        workplacesData.filter { $0.career == selectedCareer }
-    }
-    
-    // Mission recommendations based on selected career
-    var missionRecommendations: [(String, String, String, String)] {
-        switch selectedCareer {
-        case "Computer Science":
-            return [
-                ("Build a Web App", "Create a full-stack application with React", "Intermediate", "8 hours"),
-                ("Develop a Machine Learning Model", "Train an AI to classify images", "Advanced", "12 hours"),
-                ("Complete an Algorithm Challenge", "Solve complex coding problems", "Beginner", "3 hours")
-            ]
-        case "Electrical Engineering":
-            return [
-                ("Design a Circuit", "Create a simple circuit with Arduino", "Beginner", "4 hours"),
-                ("Build a Smart Home Device", "Program an IoT device", "Intermediate", "10 hours"),
-                ("Design a Solar Power System", "Calculate and design renewable energy", "Advanced", "15 hours")
-            ]
-        case "Mechanical Engineering":
-            return [
-                ("3D Print a Prototype", "Design and print a functional object", "Beginner", "5 hours"),
-                ("Build a Drone", "Assemble a small drone with basic components", "Intermediate", "12 hours"),
-                ("Design a Cooling System", "Model heat transfer for electronic devices", "Advanced", "8 hours")
-            ]
-        default:
-            return [
-                ("Code a Simple Game", "Create your first game using Swift", "Beginner", "2 hours"),
-                ("Build a Machine Learning Model", "Train an AI to recognize images", "Intermediate", "4 hours"),
-                ("Join a Hackathon", "Collaborate with others to build something cool", "Advanced", "Weekend")
-            ]
-        }
-    }
+    let careerInfos = [
+        CareerInfo(
+            name: "Computer Science",
+            description: "La informática se enfoca en la teoría, diseño y aplicación de computadoras y sistemas computacionales. Incluye áreas como inteligencia artificial, desarrollo de software, seguridad cibernética y ciencia de datos.",
+            skills: ["Pensamiento lógico", "Resolución de problemas", "Programación", "Análisis de datos"],
+            jobOpportunities: "Desarrolladora de Software, Científica de Datos, Ingeniera de IA, Analista de Ciberseguridad"
+        ),
+        CareerInfo(
+            name: "Electrical Engineering",
+            description: "La ingeniería eléctrica se enfoca en el estudio y aplicación de electricidad, electrónica y electromagnetismo. Incluye diseño de circuitos, sistemas de energía y telecomunicaciones.",
+            skills: ["Circuitos y electrónica", "Sistemas de control", "Procesamiento de señales", "Diseño de hardware"],
+            jobOpportunities: "Ingeniera Eléctrica, Diseñadora de Circuitos, Ingeniera de Telecomunicaciones"
+        ),
+        CareerInfo(
+            name: "Mechanical Engineering",
+            description: "La ingeniería mecánica aplica principios de física para diseñar, analizar y mantener sistemas mecánicos. Abarca termodinámica, mecánica estructural y diseño de maquinaria.",
+            skills: ["Diseño CAD", "Análisis de materiales", "Termodinámica", "Dinámica de fluidos"],
+            jobOpportunities: "Ingeniera Mecánica, Diseñadora de Productos, Ingeniera Automotriz"
+        )
+    ]
     
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
                 // Career Match Section
                 careerMatchSection
+                
+                // Career Info Card
+                careerInfoCard
                 
                 // CTA Button
                 exploreButton
@@ -219,66 +95,103 @@ struct ProfileView: View {
             .background(Color.cream)
         }
         .background(Color.cream)
+        .sheet(isPresented: $showRoleModelDetail) {
+            if let model = selectedRoleModel {
+                roleModelDetailView(model: model)
+            }
+        }
+        .sheet(isPresented: $showWorkplaceDetail) {
+            if let workplace = selectedWorkplace {
+                workplaceDetailView(workplace: workplace)
+            }
+        }
+        .sheet(isPresented: $showCareerDetail) {
+            careerDetailView(careerInfo: careerInfos.first { $0.name == selectedCareer } ?? careerInfos[0])
+        }
+        .fullScreenCover(isPresented: $showCareersLocationView) {
+            CareersLocationView(selectedCareer: "Ingeniería en Computación")
+        }
     }
     
     // MARK: - Career Match Section
     var careerMatchSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Your STEM Career Match ✨")
+        VStack(alignment: .center, spacing: 10) {
+            Text("Tu Carrera STEM Ideal ✨")
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryTextColor)
             
-            Text("Based on your skills & interests")
+            Text("Basado en tus habilidades e intereses")
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .padding(.bottom, 10)
             
-            HStack(spacing: 15) {
+            HStack(alignment: .top, spacing: 15) {
                 // Second Place - Electrical Engineering
                 careerCard(
                     career: "Electrical Engineering",
+                    displayName: "Ingeniería Eléctrica",
                     icon: "bolt.fill",
                     percentage: user.skills?["Electrical Engineering"] ?? 0,
-                    isSelected: selectedCareer == "Electrical Engineering"
+                    isSelected: selectedCareer == "Electrical Engineering",
+                    position: "2º LUGAR"
                 )
                 
                 // First Place - Computer Science
                 careerCard(
                     career: "Computer Science",
+                    displayName: "Ingeniería en Computación",
                     icon: "laptopcomputer",
                     percentage: user.skills?["Computer Science"] ?? 0,
-                    isSelected: selectedCareer == "Computer Science"
+                    isSelected: selectedCareer == "Computer Science",
+                    position: "1er LUGAR"
                 )
                 .scaleEffect(1.1)
+                .zIndex(1)
                 
                 // Third Place - Mechanical Engineering
                 careerCard(
                     career: "Mechanical Engineering",
+                    displayName: "Ingeniería Mecánica",
                     icon: "gear",
                     percentage: user.skills?["Mechanical Engineering"] ?? 0,
-                    isSelected: selectedCareer == "Mechanical Engineering"
+                    isSelected: selectedCareer == "Mechanical Engineering",
+                    position: "3er LUGAR"
                 )
             }
+            .frame(maxWidth: .infinity)
             .padding(.top, 5)
         }
         .padding()
     }
     
     // Career Card
-    func careerCard(career: String, icon: String, percentage: Int, isSelected: Bool) -> some View {
+    func careerCard(career: String, displayName: String, icon: String, percentage: Int, isSelected: Bool, position: String) -> some View {
         Button {
             withAnimation {
                 selectedCareer = career
             }
         } label: {
             VStack {
+                // Position
+                Text(position)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.azuli)
+                    )
+                    .offset(y: -15)
+                    .zIndex(1)
+                
                 Image(systemName: icon)
                     .font(.system(size: 30))
-                    .foregroundColor(isSelected ? .primaryOrange : .primaryTextColor)
+                    .foregroundColor(isSelected ? .azuli : .primaryTextColor)
                     .padding(.bottom, 5)
                 
-                Text(career)
+                Text(displayName)
                     .font(.system(size: 14, weight: .medium))
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primaryTextColor)
@@ -287,12 +200,12 @@ struct ProfileView: View {
                 
                 Text("\(percentage)%")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.primaryOrange)
+                    .foregroundColor(.azuli)
                     .padding(.top, 2)
                 
                 Spacer()
             }
-            .frame(height: 130)
+            .frame(height: 140)
             .padding(.top, 10)
             .padding(.horizontal, 10)
             .background(
@@ -302,22 +215,309 @@ struct ProfileView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(isSelected ? Color.primaryOrange : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.azuli : Color.clear, lineWidth: 2)
             )
-            .padding(.bottom, 30)
+            .padding(.bottom, 10) // Reducido de 30 a 10
         }
         .buttonStyle(PlainButtonStyle())
+    }
+    
+    // MARK: - Career Info Card
+    var careerInfoCard: some View {
+        let currentCareerInfo = careerInfos.first { $0.name == selectedCareer } ?? careerInfos[0]
+        
+        return Button {
+            showCareerDetail = true
+        } label: {
+            VStack(alignment: .leading, spacing: 15) {
+                HStack {
+                    Text("Sobre esta Carrera")
+                        .font(.headline)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundColor(.azuli)
+                        .font(.system(size: 16))
+                }
+                
+                Text(currentCareerInfo.description)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Habilidades Clave:")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    HStack {
+                        ForEach(currentCareerInfo.skills.prefix(2), id: \.self) { skill in
+                            HStack(spacing: 5) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.azuli)
+                                    .font(.system(size: 14))
+                                Text(skill)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            if skill != currentCareerInfo.skills.prefix(2).last {
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 5)
+                
+                HStack {
+                    Text("Más información")
+                        .font(.subheadline)
+                        .foregroundColor(.azuli)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 14))
+                }
+                .padding(.top, 5)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+            )
+            .padding(.horizontal)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    // MARK: - Career Detail View
+    func careerDetailView(careerInfo: CareerInfo) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Header
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        let careerDisplayName = careerInfo.name == "Computer Science" ? "Ingeniería en Computación" :
+                                               careerInfo.name == "Electrical Engineering" ? "Ingeniería Eléctrica" :
+                                               careerInfo.name == "Mechanical Engineering" ? "Ingeniería Mecánica" : careerInfo.name
+                        
+                        Text(careerDisplayName)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primaryTextColor)
+                        
+                        Spacer()
+                        
+                        // Icon
+                        let icon = careerInfo.name == "Computer Science" ? "laptopcomputer" :
+                                  careerInfo.name == "Electrical Engineering" ? "bolt.fill" :
+                                  careerInfo.name == "Mechanical Engineering" ? "gear" : "graduationcap"
+                        
+                        Image(systemName: icon)
+                            .font(.system(size: 36))
+                            .foregroundColor(.azuli)
+                    }
+                    
+                    Rectangle()
+                        .fill(Color.azuli)
+                        .frame(height: 4)
+                        .frame(width: 100)
+                }
+                .padding(.horizontal)
+                
+                // Description
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Descripción")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    Text(careerInfo.description)
+                        .font(.body)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                )
+                .padding(.horizontal)
+                
+                // Skills
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Habilidades Clave")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    VStack(alignment: .leading, spacing: 15) {
+                        ForEach(careerInfo.skills, id: \.self) { skill in
+                            HStack(alignment: .top, spacing: 15) {
+                                Circle()
+                                    .fill(Color.azuli)
+                                    .frame(width: 25, height: 25)
+                                    .overlay(
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white)
+                                    )
+                                
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(skill)
+                                        .font(.headline)
+                                        .foregroundColor(.primaryTextColor)
+                                    
+                                    Text("Esta habilidad es fundamental para el éxito en esta carrera. Los profesionales que dominan \(skill.lowercased()) tienen una ventaja competitiva en el mercado laboral.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            if skill != careerInfo.skills.last {
+                                Divider()
+                                    .padding(.vertical, 5)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                )
+                .padding(.horizontal)
+                
+                // Job Opportunities
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Oportunidades Laborales")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    let jobs = careerInfo.jobOpportunities.components(separatedBy: ", ")
+                    
+                    VStack(spacing: 15) {
+                        ForEach(jobs, id: \.self) { job in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(job)
+                                        .font(.headline)
+                                        .foregroundColor(.primaryTextColor)
+                                    
+                                    Text("Salario promedio: $75,000 - $120,000")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "briefcase.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.azuli)
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white)
+                                    .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 2)
+                            )
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                )
+                .padding(.horizontal)
+                
+                // Education Path
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Camino Educativo")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryTextColor)
+                    
+                    HStack(spacing: 0) {
+                        educationStepCard(
+                            step: "1",
+                            title: "Bachillerato",
+                            description: "Enfócate en matemáticas y ciencias",
+                            timeframe: "3 años"
+                        )
+                        
+                        Rectangle()
+                            .fill(Color.azuli)
+                            .frame(width: 30, height: 2)
+                        
+                        educationStepCard(
+                            step: "2",
+                            title: "Universidad",
+                            description: "Licenciatura en \(careerInfo.name == "Computer Science" ? "Ingeniería en Computación" : careerInfo.name == "Electrical Engineering" ? "Ingeniería Eléctrica" : "Ingeniería Mecánica")",
+                            timeframe: "4-5 años"
+                        )
+                        
+                        Rectangle()
+                            .fill(Color.azuli)
+                            .frame(width: 30, height: 2)
+                        
+                        educationStepCard(
+                            step: "3",
+                            title: "Especialización",
+                            description: "Maestría o certificaciones",
+                            timeframe: "1-2 años"
+                        )
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                )
+                .padding(.horizontal)
+                
+                Spacer(minLength: 30)
+            }
+            .padding(.vertical)
+            .background(Color.cream)
+        }
+        .background(Color.cream)
+    }
+    
+    // Función para obtener el nombre en español de la carrera seleccionada
+    func getSpanishCareerName(_ careerName: String) -> String {
+        switch careerName {
+        case "Computer Science":
+            return "Ingeniería en Computación"
+        case "Electrical Engineering":
+            return "Ingeniería Eléctrica"
+        case "Mechanical Engineering":
+            return "Ingeniería Mecánica"
+        default:
+            return careerName
+        }
     }
     
     // MARK: - Explore Button
     var exploreButton: some View {
         Button {
-            // Action for exploring programs
+            // Inicia la vista de exploración de carreras con la carrera seleccionada
+            showCareersLocationView = true
         } label: {
             HStack {
                 Image(systemName: "graduationcap.fill")
                     .font(.system(size: 18))
-                Text("Explore Programs Near You")
+                Text("Explorar Programas Cerca de Ti")
                     .fontWeight(.semibold)
             }
             .foregroundColor(.white)
@@ -325,8 +525,8 @@ struct ProfileView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.primaryOrange)
-                    .shadow(color: Color.primaryOrange.opacity(0.3), radius: 10, x: 0, y: 5)
+                    .fill(Color.azuli)
+                    .shadow(color: Color.azuli.opacity(0.3), radius: 10, x: 0, y: 5)
             )
         }
         .padding(.horizontal)
@@ -335,7 +535,8 @@ struct ProfileView: View {
     // MARK: - Role Models Section
     var roleModelsSection: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Women Crushing It 💪")
+            // Título dinámico que muestra la carrera seleccionada
+            Text("Mujeres Exitosas en \(getSpanishCareerName(selectedCareer)) 💪")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryTextColor)
@@ -343,38 +544,33 @@ struct ProfileView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
-                    ForEach(filteredRoleModels, id: \.id) { model in
+                    ForEach(roleModels, id: \.id) { model in
                         roleModelCard(model: model)
                     }
                 }
                 .padding(.horizontal)
             }
         }
-        .sheet(isPresented: $showRoleModelDetails, content: {
-            if let model = selectedRoleModel {
-                roleModelDetailView(model: model)
-            }
-        })
     }
     
     func roleModelCard(model: RoleModel) -> some View {
         Button {
             selectedRoleModel = model
-            showRoleModelDetails = true
+            showRoleModelDetail = true
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 // Profile image
                 Circle()
-                    .fill(Color.primaryOrange.opacity(0.2))
+                    .fill(Color.azuli.opacity(0.2))
                     .frame(width: 80, height: 80)
                     .overlay(
                         ZStack {
                             Circle()
-                                .stroke(Color.primaryOrange, lineWidth: 2)
+                                .stroke(Color.azuli, lineWidth: 2)
                             // In a real app, you'd use an actual image
                             Text(String(model.name.prefix(1)))
                                 .font(.system(size: 32, weight: .semibold))
-                                .foregroundColor(.primaryOrange)
+                                .foregroundColor(.azuli)
                         }
                     )
                     .padding(.bottom, 5)
@@ -406,125 +602,122 @@ struct ProfileView: View {
     }
     
     func roleModelDetailView(model: RoleModel) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header with close button
-                HStack {
-                    Spacer()
-                    Button {
-                        showRoleModelDetails = false
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                // Profile image and name
-                HStack(spacing: 15) {
-                    Circle()
-                        .fill(Color.primaryOrange.opacity(0.2))
-                        .frame(width: 100, height: 100)
-                        .overlay(
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.primaryOrange, lineWidth: 2)
-                                Text(String(model.name.prefix(1)))
-                                    .font(.system(size: 40, weight: .semibold))
-                                    .foregroundColor(.primaryOrange)
-                            }
-                        )
-                    
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(model.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primaryTextColor)
-                        
-                        Text(model.title)
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                        
-                        Text(model.organization)
-                            .font(.headline)
-                            .foregroundColor(.primaryOrange)
-                    }
-                }
-                .padding(.vertical)
-                
-                // Career label
-                Text(model.career)
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.primaryOrange.opacity(0.2))
+        VStack(alignment: .leading, spacing: 20) {
+            // Header with profile image
+            HStack(spacing: 15) {
+                Circle()
+                    .fill(Color.azuli.opacity(0.2))
+                    .frame(width: 100, height: 100)
+                    .overlay(
+                        ZStack {
+                            Circle()
+                                .stroke(Color.azuli, lineWidth: 2)
+                            Text(String(model.name.prefix(1)))
+                                .font(.system(size: 40, weight: .semibold))
+                                .foregroundColor(.azuli)
+                        }
                     )
-                    .foregroundColor(.primaryOrange)
                 
-                // Biography
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Biography")
-                        .font(.title3)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(model.name)
+                        .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primaryTextColor)
                     
-                    Text(model.bio)
-                        .font(.body)
-                        .foregroundColor(.primaryTextColor)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                
-                // Achievements
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Key Achievements")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primaryTextColor)
+                    Text(model.title)
+                        .font(.headline)
+                        .foregroundColor(.gray)
                     
-                    achievementRow(icon: "star.fill", text: "Leader in \(model.career) field")
-                    achievementRow(icon: "trophy.fill", text: "Recognized industry expert")
-                    achievementRow(icon: "person.3.fill", text: "Mentor to young women in STEM")
+                    Text(model.organization)
+                        .font(.headline)
+                        .foregroundColor(.gray)
                 }
-                
-                // Connect button
-                Button {
-                    // Action to learn more
-                } label: {
-                    Text("Learn More About \(model.name)")
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.primaryOrange)
-                        )
-                }
-                .padding(.top)
             }
             .padding()
-        }
-        .background(Color.cream.ignoresSafeArea())
-    }
-    
-    func achievementRow(icon: String, text: String) -> some View {
-        HStack(spacing: 15) {
-            Image(systemName: icon)
-                .foregroundColor(.primaryOrange)
             
-            Text(text)
-                .font(.subheadline)
-                .foregroundColor(.primaryTextColor)
+            // Bio
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Biografía")
+                    .font(.headline)
+                    .foregroundColor(.primaryTextColor)
+                
+                Text("Esta es una biografía detallada sobre \(model.name) y sus contribuciones al campo. En una aplicación real, este texto incluiría información sobre su educación, logros importantes, premios y el impacto que ha tenido en su industria.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            
+            // Career Path
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Trayectoria Profesional")
+                    .font(.headline)
+                    .foregroundColor(.primaryTextColor)
+                
+                VStack(alignment: .leading, spacing: 15) {
+                    HStack(alignment: .top, spacing: 15) {
+                        Circle()
+                            .fill(Color.azuli)
+                            .frame(width: 15, height: 15)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Educación")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryTextColor)
+                            
+                            Text("Universidad prestigiosa")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    
+                    HStack(alignment: .top, spacing: 15) {
+                        Circle()
+                            .fill(Color.azuli)
+                            .frame(width: 15, height: 15)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Primer Puesto")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryTextColor)
+                            
+                            Text("Empresa tecnológica líder")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    
+                    HStack(alignment: .top, spacing: 15) {
+                        Circle()
+                            .fill(Color.azuli)
+                            .frame(width: 15, height: 15)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Posición Actual")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryTextColor)
+                            
+                            Text("\(model.title) en \(model.organization)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+            }
+            .padding()
+            
+            Spacer()
         }
-        .padding(.vertical, 5)
+        .frame(maxWidth: .infinity)
+        .background(Color.cream)
     }
     
     // MARK: - Workplaces Section
     var workplacesSection: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Where You Could Work 🚀")
+            Text("Donde Podrías Trabajar 🚀")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryTextColor)
@@ -532,7 +725,7 @@ struct ProfileView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
-                    ForEach(filteredWorkplaces, id: \.id) { workplace in
+                    ForEach(workplaces, id: \.id) { workplace in
                         workplaceCard(workplace: workplace)
                     }
                 }
@@ -540,27 +733,23 @@ struct ProfileView: View {
             }
         }
         .padding(.top, 10)
-        .sheet(isPresented: $showWorkplaceDetails, content: {
-            if let workplace = selectedWorkplace {
-                workplaceDetailView(workplace: workplace)
-            }
-        })
     }
     
     func workplaceCard(workplace: Workplace) -> some View {
         Button {
             selectedWorkplace = workplace
-            showWorkplaceDetails = true
+            showWorkplaceDetail = true
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 // Icon
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.primaryOrange.opacity(0.1))
+                    .fill(Color.azuli.opacity(0.1))
                     .frame(width: 50, height: 50)
                     .overlay(
-                        Image(systemName: getIconForWorkplace(workplace))
+                        Image(systemName: workplace.icon == "laptop" ? "laptopcomputer" :
+                                         workplace.icon == "rocket" ? "rocket" : "chart.bar.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(.primaryOrange)
+                            .foregroundColor(.azuli)
                     )
                     .padding(.bottom, 5)
                 
@@ -586,164 +775,94 @@ struct ProfileView: View {
         .buttonStyle(PlainButtonStyle())
     }
     
-    func getIconForWorkplace(_ workplace: Workplace) -> String {
-        switch workplace.icon {
-            case "laptop": return "laptopcomputer"
-            case "rocket": return "rocket"
-            case "chart": return "chart.bar.fill"
-            case "bolt.fill": return "bolt.fill"
-            case "cpu": return "cpu"
-            case "network": return "network"
-            case "airplane": return "airplane"
-            case "car": return "car.fill"
-            case "heart": return "heart.fill"
-            default: return "building.2.fill"
-        }
-    }
-    
     func workplaceDetailView(workplace: Workplace) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header with close button
-                HStack {
-                    Spacer()
-                    Button {
-                        showWorkplaceDetails = false
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
-                // Icon and name
-                HStack(spacing: 15) {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(Color.primaryOrange.opacity(0.2))
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            Image(systemName: getIconForWorkplace(workplace))
-                                .font(.system(size: 30))
-                                .foregroundColor(.primaryOrange)
-                        )
-                    
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(workplace.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.primaryTextColor)
-                        
-                        Text(workplace.description)
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.vertical)
-                
-                // Career label
-                Text(workplace.career)
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.primaryOrange.opacity(0.2))
+        VStack(alignment: .leading, spacing: 20) {
+            // Header
+            HStack {
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(Color.azuli.opacity(0.1))
+                    .frame(width: 80, height: 80)
+                    .overlay(
+                        Image(systemName: workplace.icon == "laptop" ? "laptopcomputer" :
+                                         workplace.icon == "rocket" ? "rocket" : "chart.bar.fill")
+                            .font(.system(size: 35))
+                            .foregroundColor(.azuli)
                     )
-                    .foregroundColor(.primaryOrange)
                 
-                // Details
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("What You Could Do Here")
-                        .font(.title3)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(workplace.name)
+                        .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primaryTextColor)
                     
-                    Text(workplace.details)
-                        .font(.body)
-                        .foregroundColor(.primaryTextColor)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Text(workplace.description)
+                        .font(.headline)
+                        .foregroundColor(.gray)
                 }
-                
-                // Skills needed
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Skills in Demand")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primaryTextColor)
-                    
-                    // Skills based on career type
-                    if workplace.career == "Computer Science" {
-                        skillRow(name: "Programming", level: 0.9)
-                        skillRow(name: "Data Structures", level: 0.8)
-                        skillRow(name: "Software Design", level: 0.7)
-                    } else if workplace.career == "Electrical Engineering" {
-                        skillRow(name: "Circuit Design", level: 0.9)
-                        skillRow(name: "Embedded Systems", level: 0.8)
-                        skillRow(name: "Signal Processing", level: 0.7)
-                    } else {
-                        skillRow(name: "3D Modeling", level: 0.9)
-                        skillRow(name: "Thermodynamics", level: 0.8)
-                        skillRow(name: "Material Science", level: 0.7)
-                    }
-                }
-                
-                // Connect button
-                Button {
-                    // Action to explore
-                } label: {
-                    Text("Explore Opportunities at \(workplace.name)")
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.primaryOrange)
-                        )
-                }
-                .padding(.top)
+                .padding(.leading, 10)
             }
             .padding()
-        }
-        .background(Color.cream.ignoresSafeArea())
-    }
-    
-    func skillRow(name: String, level: Double) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack {
-                Text(name)
-                    .font(.subheadline)
+            
+            // Description
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Acerca de")
+                    .font(.headline)
                     .foregroundColor(.primaryTextColor)
                 
-                Spacer()
+                Text("Aquí encontrarás una descripción detallada sobre cómo es trabajar en \(workplace.name). En una aplicación real, este texto incluiría información sobre la cultura de trabajo, beneficios, oportunidades de crecimiento y los tipos de proyectos en los que podrías trabajar.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            
+            // Roles
+            VStack(alignment: .leading, spacing: 15) {
+                Text("Roles Disponibles")
+                    .font(.headline)
+                    .foregroundColor(.primaryTextColor)
                 
-                Text("\(Int(level * 100))%")
-                    .font(.caption)
+                rolesCard(title: "Ingeniera de Software", salary: "$70,000 - $120,000")
+                rolesCard(title: "Científica de Datos", salary: "$80,000 - $130,000")
+                rolesCard(title: "Diseñadora de UX", salary: "$65,000 - $110,000")
+            }
+            .padding()
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color.cream)
+    }
+    
+    func rolesCard(title: String, salary: String) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primaryTextColor)
+                
+                Text(salary)
+                    .font(.subheadline)
                     .foregroundColor(.gray)
             }
             
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .frame(width: geometry.size.width, height: 8)
-                        .opacity(0.1)
-                        .foregroundColor(.gray)
-                    
-                    Rectangle()
-                        .frame(width: geometry.size.width * level, height: 8)
-                        .foregroundColor(.primaryOrange)
-                }
-                .cornerRadius(4)
-            }
-            .frame(height: 8)
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
         }
-        .padding(.vertical, 5)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+        )
     }
     
     // MARK: - Recommended Missions
     var recommendedMissionsSection: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Recommended Next Steps 🎯")
+            Text("Próximos Pasos Recomendados 🎯")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryTextColor)
@@ -751,24 +870,24 @@ struct ProfileView: View {
             
             VStack(spacing: 12) {
                 missionCard(
-                    title: "Code a Simple Game",
-                    description: "Create your first game using Swift",
-                    difficulty: "Beginner",
-                    time: "2 hours"
+                    title: "Programar un Juego Simple",
+                    description: "Crea tu primer juego usando Swift",
+                    difficulty: "Principiante",
+                    time: "2 horas"
                 )
                 
                 missionCard(
-                    title: "Build a Machine Learning Model",
-                    description: "Train an AI to recognize images",
-                    difficulty: "Intermediate",
-                    time: "4 hours"
+                    title: "Construir un Modelo de IA",
+                    description: "Entrena una IA para reconocer imágenes",
+                    difficulty: "Intermedio",
+                    time: "4 horas"
                 )
                 
                 missionCard(
-                    title: "Join a Hackathon",
-                    description: "Collaborate with others to build something cool",
-                    difficulty: "Advanced",
-                    time: "Weekend"
+                    title: "Participar en un Hackathon",
+                    description: "Colabora con otros para construir algo genial",
+                    difficulty: "Avanzado",
+                    time: "Fin de semana"
                 )
             }
             .padding(.horizontal)
@@ -797,9 +916,9 @@ struct ProfileView: View {
                             .padding(.vertical, 4)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.primaryOrange.opacity(0.2))
+                                    .fill(Color.azuli.opacity(0.2))
                             )
-                            .foregroundColor(.primaryOrange)
+                            .foregroundColor(.azuli)
                         
                         Text(time)
                             .font(.caption)
@@ -828,6 +947,43 @@ struct ProfileView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+func educationStepCard(step: String, title: String, description: String, timeframe: String) -> some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(Color.azuli)
+                    .frame(width: 35, height: 35)
+                
+                Text(step)
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
+            
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.primaryTextColor)
+                .multilineTextAlignment(.center)
+            
+            Text(description)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+            
+            Text(timeframe)
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.azuli.opacity(0.2))
+                )
+                .foregroundColor(.azuli)
+        }
+        .frame(width: 100)
+        .padding(.vertical)
+    }
+
 
 let exampleUsers = [
     User(id: UUID(), gender: "Female")

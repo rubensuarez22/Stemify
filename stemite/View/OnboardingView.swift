@@ -1,218 +1,148 @@
 import SwiftUI
 
-// --- Modelos de Datos para las Preguntas y Opciones ---
-struct QuizQuestion: Identifiable, Hashable {
-    let id = UUID()
-    let questionText: String
-    let options: [QuizOption]
-    // Puedes añadir un campo para el tipo de "aspiración" que representa la pregunta
-    // let aspirationType: String // Ej: "Gaming", "Creator", "Strategist"
-}
-
-struct QuizOption: Identifiable, Hashable {
-    let id = UUID()
-    let text: String
-    let imageName: String // Nombre de la imagen en tus assets
-    let accentColor: Color // Color para el borde/feedback
-}
-
-// --- Vista Principal del Quiz con Paginación ---
 struct OnboardingView: View {
-    var selectedGender: WelcomeView.Gender?
-    // Estado para la página actual del TabView
+    @Binding var hasCompletedOnboarding: Bool
+    var selectedGender: WelcomeView.Gender? // Recibe el enum de WelcomeView
+    let questions: [QuizQuestion]          // Recibe las preguntas
+
     @State private var currentPage = 0
-    // Estado para almacenar las respuestas (opcional, depende de si necesitas guardarlas)
-    @State private var answers: [UUID?] // Almacena el ID de la opción seleccionada para cada pregunta
-
-    // Datos de ejemplo para las preguntas
-    // DEBES REEMPLAZAR ESTO CON TUS PREGUNTAS REALES Y ASSETS
-    let questions: [QuizQuestion] = [
-        QuizQuestion(questionText: "¿Qué 'vida de pro' te llama más la atención? ✨🔥",
-                     options: [
-                        QuizOption(text: "REVENTARLA COMO STREAMER PRO", imageName: "streamer_setup", accentColor: Color.green), // Reemplaza "streamer_setup"
-                        QuizOption(text: "DISEÑAR LOS JUEGOS DEL MAÑANA", imageName: "game_design_concept", accentColor: Color.orange), // Reemplaza "game_design_concept"
-                        QuizOption(text: "SER EL CEREBRO DETRÁS DEL PRÓXIMO HIT", imageName: "tech_brain_matrix", accentColor: Color.blue) // Reemplaza "tech_brain_matrix"
-                     ]),
-        QuizQuestion(questionText: "Si tuvieras un día libre y $1000, ¿en qué los gastarías? 💸🤔",
-                     options: [
-                        QuizOption(text: "EL MEJOR EQUIPO GAMER", imageName: "gamer_gear", accentColor: Color.purple),
-                        QuizOption(text: "CURSOS PARA CREAR ALGO ÉPICO", imageName: "online_courses", accentColor: Color.yellow),
-                        QuizOption(text: "INVERTIR PARA MÁS LANA", imageName: "investment_chart", accentColor: Color.cyan)
-                     ]),
-        QuizQuestion(questionText: "¿Qué te emociona más de la tecnología del futuro? 👽🚀",
-                     options: [
-                        QuizOption(text: "REALIDAD VIRTUAL INMERSIVA", imageName: "vr_world", accentColor: Color.red),
-                        QuizOption(text: "INTELIGENCIA ARTIFICIAL QUE LO RESUELVA TODO", imageName: "ai_brain_gears", accentColor: Color.teal),
-                        QuizOption(text: "VIAJES ESPACIALES ACCESIBLES", imageName: "space_travel", accentColor: Color.pink)
-                     ])
-        // Añade más preguntas aquí
-    ]
-
-    // Colores de la app (puedes pasarlos o definirlos aquí)
-    let backgroundColor = Color(red: 1.0, green: 0.98, blue: 0.96) // Un fondo muy pálido, casi blanco
-    let primaryTextColor = Color(red: 0.1, green: 0.1, blue: 0.1) // Casi negro para el texto
-
-    // Estado para la opción seleccionada en la pregunta actual
-    @State private var selectedOptionID: UUID?
-    // Estado para mostrar el botón final
+    @State private var answersForEachPage: [UUID?] // Para el resaltado de cada página
     @State private var showFinalButton = false
     
-    init(selectedGender: WelcomeView.Gender? = nil) {
-            self.selectedGender = selectedGender
-        // Inicializar el array de respuestas con nil para cada pregunta
-        _answers = State(initialValue: Array(repeating: nil, count: questions.count))
+    let backgroundColor = Color(red: 1.0, green: 0.98, blue: 0.96)
+    let primaryTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
+
+    // Inicializador ACEPTA questions
+    init(hasCompletedOnboarding: Binding<Bool>, selectedGender: WelcomeView.Gender?, questions: [QuizQuestion]) {
+        self._hasCompletedOnboarding = hasCompletedOnboarding
+        self.selectedGender = selectedGender
+        self.questions = questions
+        _answersForEachPage = State(initialValue: Array(repeating: nil, count: questions.count))
     }
 
     var body: some View {
-        ZStack {
-            backgroundColor.ignoresSafeArea()
-
-            VStack {
-                // Paginador de Preguntas
-                TabView(selection: $currentPage) {
-                    ForEach(questions.indices, id: \.self) { index in
-                        QuestionView(
-                            question: questions[index],
-                            questionNumber: index + 1,
-                            totalQuestions: questions.count,
-                            selectedOptionID: $answers[index], // Enlaza la selección de esta pregunta
-                            isLastQuestion: index == questions.count - 1,
-                            onOptionSelected: { optionID in
-                                answers[index] = optionID // Guarda la respuesta
-                                if index == questions.count - 1 { // Si es la última pregunta
-                                    withAnimation {
-                                        showFinalButton = true
+        if questions.isEmpty {
+            Text("No hay preguntas de onboarding.")
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.hasCompletedOnboarding = true
+                    }
+                }
+        } else {
+            ZStack {
+                backgroundColor.ignoresSafeArea()
+                VStack {
+            
+                    TabView(selection: $currentPage) {
+                        ForEach(questions.indices, id: \.self) { index in
+                            OnboardingQuestionCard(
+                                question: questions[index],
+                                selectedOptionID: $answersForEachPage[index], // Binding al elemento del array
+                                onOptionSelected: { _ in // El ID ya se guardó en answersForEachPage[index]
+                                    if index == questions.count - 1 {
+                                        if !showFinalButton {
+                                            withAnimation { showFinalButton = true }
+                                        }
                                     }
-                                } else {
-                                    // Avanzar a la siguiente página automáticamente (opcional)
-                                    // withAnimation {
-                                    //     currentPage = min(currentPage + 1, questions.count - 1)
-                                    // }
                                 }
-                            }
-                        )
-                        .tag(index) // Importante para que el TabView funcione
+                            )
+                            .tag(index)
+                        }
+                    }
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
+                    .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+
+                    if showFinalButton && currentPage == questions.count - 1 {
+                        Button(action: {
+                            print("Onboarding completado. Género: \(selectedGender?.rawValue ?? "No especificado")")
+                            self.hasCompletedOnboarding = true
+                        }) {
+                            Text("¡LISTO! VER MI FLOW")
+                                .font(.custom("AvenirNext-Bold", size: 18))
+                                .fontWeight(.bold).foregroundColor(.white).padding()
+                                .frame(maxWidth: .infinity).background(Color.orange)
+                                .cornerRadius(12).shadow(radius: 5)
+                        }
+                        .padding(.horizontal, 30).padding(.bottom, 30)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    }
+                    Spacer(minLength: (showFinalButton && currentPage == questions.count - 1) ? 20 : 70)
+                }
+            }
+            .onChange(of: currentPage) { newPage in
+                // No es necesario resetear `answersForEachPage[index]` aquí,
+                // ya que cada página usa su propio elemento del array.
+                if newPage < questions.count - 1 {
+                    if showFinalButton {
+                        withAnimation { showFinalButton = false }
                     }
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic)) // Estilo de paginación con puntos
-                .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always)) // Para que los puntos siempre se vean
-
-                // Botón Final (aparece sutilmente en la última pregunta después de seleccionar una opción)
-                if showFinalButton && currentPage == questions.count - 1 {
-                    Button(action: {
-                        // Acción final: Navegar a la siguiente sección de la app (Misiones)
-                        // Aquí procesarías las `answers` si es necesario
-                        print("Quiz completado. Respuestas: \(answers)")
-                        // Lógica de navegación...
-                    }) {
-                        Text("¡LISTO! VER MI FLOW")
-                            .font(.custom("AvenirNext-Bold", size: 18))
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.orange) // Color del botón final, ajústalo
-                            .cornerRadius(12)
-                            .shadow(radius: 5)
-                    }
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 20)
-                    .transition(.opacity.combined(with: .scale(scale: 0.9))) // Animación sutil
-                }
-
-                Spacer(minLength: showFinalButton && currentPage == questions.count - 1 ? 10 : 60) // Ajusta el espacio si el botón está visible
             }
         }
     }
 }
 
-// --- Vista para cada Pregunta Individual ---
-struct QuestionView: View {
-    let question: QuizQuestion
-    let questionNumber: Int
-    let totalQuestions: Int
-    @Binding var selectedOptionID: UUID? // Enlace a la opción seleccionada
-    let isLastQuestion: Bool
-    let onOptionSelected: (UUID) -> Void // Callback cuando se selecciona una opción
+// --- Subvistas para OnboardingView (OnboardingQuestionCard y OnboardingOptionCard) ---
+// (Tu código para estas subvistas, asegurándote que OnboardingQuestionCard reciba
+// `@Binding var selectedOptionID: UUID?` y OnboardingOptionCard reciba
+// `let isSelected: Bool` y las use para el resaltado)
 
-    // Colores (puedes pasarlos o definirlos aquí también)
+struct OnboardingQuestionCard: View {
+    let question: QuizQuestion
+    @Binding var selectedOptionID: UUID?
+    let onOptionSelected: (UUID) -> Void
     let primaryTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
 
     var body: some View {
         VStack(spacing: 25) {
-            // Texto de la Pregunta
             Text(question.questionText)
                 .font(.custom("AvenirNext-Bold", size: 26))
-                .fontWeight(.bold)
-                .foregroundColor(primaryTextColor)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-                .padding(.top, 40) // Más espacio arriba
-
-            // Opciones
+                .fontWeight(.bold).foregroundColor(primaryTextColor)
+                .multilineTextAlignment(.center).padding(.horizontal, 20).padding(.top, 50)
             ForEach(question.options) { option in
                 Button(action: {
-                    selectedOptionID = option.id // Actualiza la selección
-                    onOptionSelected(option.id) // Llama al callback
-                }) {
-                    OptionView(
-                        option: option,
-                        isSelected: selectedOptionID == option.id
-                    )
-                }
+                    selectedOptionID = option.id
+                    onOptionSelected(option.id)
+                }) { OnboardingOptionCard(option: option, isSelected: selectedOptionID == option.id) }
             }
-            Spacer() // Empuja las opciones hacia arriba si hay pocas
-        }
-        .padding(.bottom, 20) // Padding inferior para la vista de pregunta
+            Spacer()
+        }.padding(.bottom, 20)
     }
 }
 
-// --- Vista para cada Opción ---
-struct OptionView: View {
+struct OnboardingOptionCard: View {
     let option: QuizOption
     let isSelected: Bool
-
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Imagen de Fondo de la Opción
-            // DEBES TENER ESTAS IMÁGENES EN TUS ASSETS
-            Image(option.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill) // O .fit, según prefieras
-                .frame(height: 150) // Altura fija para las tarjetas de opción
-                .clipped() // Para que la imagen no se salga del frame
-
-            // Overlay oscuro para que el texto resalte
-            LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.8), Color.black.opacity(0.2), Color.clear]),
-                startPoint: .bottom,
-                endPoint: .center
-            )
-            .frame(height: 150)
-
-            // Texto de la Opción
+            if UIImage(named: option.imageName) != nil { Image(option.imageName).resizable().aspectRatio(contentMode: .fill).frame(height: 140).clipped()
+            } else { option.accentColor.opacity(0.3).frame(height: 140) }
+            LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.7), .clear]), startPoint: .bottom, endPoint: .center).frame(height: 140)
             Text(option.text)
-                .font(.custom("AvenirNext-DemiBold", size: 18))
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .padding(15)
-                .shadow(color: .black.opacity(0.7), radius: 3, x: 1, y: 1) // Sombra para el texto
+                .font(.custom("AvenirNext-DemiBold", size: 18)).fontWeight(.semibold).foregroundColor(.white).padding(12).shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 1)
         }
-        .frame(height: 150)
-        .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(isSelected ? option.accentColor : Color.gray.opacity(0.5), lineWidth: isSelected ? 4 : 2) // Borde de selección
-        )
-        .scaleEffect(isSelected ? 1.03 : 1.0) // Efecto sutil al seleccionar
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
-        .padding(.horizontal, 20)
+        .frame(height: 140).cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(isSelected ? option.accentColor : Color.gray.opacity(0.3), lineWidth: isSelected ? 3.5 : 1.5))
+        .scaleEffect(isSelected ? 1.02 : 1.0).animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+        .padding(.horizontal, 25)
     }
 }
 
-// --- Preview ---
+
+// --- Preview para OnboardingView (CORREGIDO) ---
+struct OnboardingView_PreviewHelper: View {
+    @State var onboardingCompleted_preview = false // Nombre diferente para el preview
+    var body: some View {
+        OnboardingView(
+            hasCompletedOnboarding: $onboardingCompleted_preview,
+            selectedGender: .mujer, // Ejemplo
+            questions: sampleOnboardingQuestions // Pasa los datos globales
+        )
+    }
+}
+
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
-        OnboardingView()
+        OnboardingView_PreviewHelper()
     }
 }

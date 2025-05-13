@@ -13,6 +13,7 @@ extension Color {
     public static let primaryOrange = Color(hex: "#ED9E50")
     public static let cream = Color(hex: "#FDF5EC")
     public static let primaryTextColor = Color(hex: "222222")
+    public static let azuli = Color(hex: "4f9fed")
 }
 
 extension Color {

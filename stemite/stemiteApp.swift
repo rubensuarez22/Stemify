@@ -29,9 +29,6 @@ struct stemiteApp: App { // Asegúrate que el nombre coincida con tu proyecto
                 // y DESPUÉS de la decisión del onboarding
                 if !isAppLoading { // Solo mostrar si la carga inicial ha terminado
                     if hasCompletedOnboarding {
-                        // Si el onboarding YA se completó, muestra tu vista principal
-                        // que parece ser NavigationBar() en tu código.
-                        // NavigationBar() probablemente contenga tu HomeView o similar.
                         NavigationBar()
                     } else {
                         // Si el onboarding NO se ha completado, muestra WelcomeView.

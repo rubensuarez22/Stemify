@@ -60,7 +60,7 @@ struct OnboardingView: View {
                             Text("¡LISTO! VER MI FLOW")
                                 .font(.custom("AvenirNext-Bold", size: 18))
                                 .fontWeight(.bold).foregroundColor(.white).padding()
-                                .frame(maxWidth: .infinity).background(Color.orange)
+                                .frame(maxWidth: .infinity).background(Color.primaryOrange)
                                 .cornerRadius(12).shadow(radius: 5)
                         }
                         .padding(.horizontal, 30).padding(.bottom, 30)

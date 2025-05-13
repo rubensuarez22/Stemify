@@ -1,346 +1,323 @@
-//
-//  HomeView.swift
-//  stemite
-//
-//  Created by iOS Lab on 13/05/25.
-//
-
 import SwiftUI
+
+// MARK: - Modelos (Definidos aquí para que el archivo sea autocontenido)
+// En un proyecto más grande, estos irían en un archivo de Modelos separado.
+enum LessonType {
+    case standard
+    case checkpoint
+    case locked
+}
+
+
+
+// MARK: - Vista Principal HomeView
 
 struct HomeView: View {
     // Sample lesson data
-    let lessons: [Lesson] = [
-        Lesson(id: 1, title: "Building Patterns", isCompleted: true, icon: "checkmark", type: .standard),
-        Lesson(id: 2, title: "Practice Building Patterns", isCompleted: false, icon: "number", type: .standard),
-        Lesson(id: 3, title: "Pattern Rules", isCompleted: false, icon: "square.stack.3d.up", type: .standard),
-        Lesson(id: 4, title: "Practice Pattern", isCompleted: false, icon: "number", type: .locked)
+    @State var lessons: [Lesson] = [ // @State si isCompleted puede cambiar
+        Lesson(id: 1, title: "Building Patterns", isCompleted: true, icon: "checkmark.seal.fill", type: .standard),
+        Lesson(id: 2, title: "Practice Building Patterns", isCompleted: false, icon: "number.circle.fill", type: .standard), // Cambié a ícono más visual
+        Lesson(id: 3, title: "Pattern Rules", isCompleted: false, icon: "square.stack.3d.up.fill", type: .standard),
+        Lesson(id: 4, title: "Practice Pattern", isCompleted: false, icon: "lock.circle.fill", type: .locked), // Cambié a ícono más visual
+        Lesson(id: 5, title: "Advanced Challenge", isCompleted: false, icon: "star.fill", type: .standard),
+        Lesson(id: 6, title: "Final Project", isCompleted: false, icon: "flag.checkered.2.crossed", type: .locked)
     ]
+    
+    // --- Colores y Fuentes (Ejemplos, ¡AJÚSTALOS!) ---
+    let headerTextColor = Color.primary // Se adapta a Light/Dark mode
+    let levelColor = Color.blue       // TÚ ACCIÓN: Define tu color
+    let pathBackgroundColor = Color(red: 0.97, green: 0.97, blue: 0.985) // Un gris/lila muy pálido
+
+    // --- Parámetros para el Layout Isométrico Dinámico ---
+    let nodeVisualWidth: CGFloat = 100  // Ancho del VStack del IsometricLessonBlock (incluyendo título)
+    let nodeVisualHeight: CGFloat = 80 // Alto APROXIMADO del VStack del IsometricLessonBlock (para centrar)
+    
+    let verticalSpacingPerNode: CGFloat = 140 // Espacio vertical ENTRE CENTROS de nodos
+    let horizontalZigZagMagnitude: CGFloat = 60 // Cuánto se mueve a izq/der en el zigzag
+    let pathHorizontalPadding: CGFloat = 20 // Padding a los lados del ZStack del path
+    
+    
+    // Nuevos parámetros para las barras laterales
+    let sideBarWidth: CGFloat = 10 // Ancho de cada barra lateral individual
+    let sideBarHeight: CGFloat = 40 // Alto de cada barra lateral individual
+    let sideBarDepth: CGFloat = 6    // Profundidad isométrica de la barra lateral
+    let sideBarSpacing: CGFloat = 6  // Espacio entre barras laterales en un grupo
+    let sideBarGroupOffsetX: CGFloat = 120 // Cuánto se separan del centro del path
+
+    
+    // Propiedades computadas para el progreso
+    var currentOverallProgress: Int {
+        lessons.filter { $0.isCompleted }.count
+    }
+    var totalDisplayableLessons: Int { // Lecciones que se muestran en el progreso (no bloqueadas o un subconjunto)
+        // Podrías tener una lógica más compleja aquí si el path tiene "secciones" o niveles
+        lessons.count // Por ahora, todas las lecciones
+    }
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 20) { // Espaciado general del VStack
                 // Header
                 HStack {
-                    Text("Learning Path")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.primary)
-                    
+                    Text("Learning Path") // TÚ ACCIÓN: FUENTE
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(headerTextColor)
                     Spacer()
-                    
-                    // Progress indicator
                     HStack(spacing: 4) {
                         Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                        Text("1/4")
-                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color.yellow) // TÚ ACCIÓN: COLOR
+                        Text("\(currentOverallProgress)/\(totalDisplayableLessons)") // TÚ ACCIÓN: FUENTE
+                            .font(.system(size: 15, weight: .semibold))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(16)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(levelColor.opacity(0.1)) // TÚ ACCIÓN: COLOR
+                    .cornerRadius(12)
                 }
                 .padding(.horizontal)
-                .padding(.top, 16)
+                .padding(.top, 10)
                 
                 // Level header
                 HStack {
-                    Text("LEVEL")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.blue)
-                    
+                    Text("LEVEL") // TÚ ACCIÓN: FUENTE
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(levelColor) // TÚ ACCIÓN: COLOR
                     ZStack {
                         Image(systemName: "hexagon.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 40, height: 40)
-                            .foregroundColor(.blue)
-                        
-                        Text("1")
-                            .font(.system(size: 20, weight: .bold))
+                            .resizable().scaledToFit().frame(width: 35, height: 35)
+                            .foregroundColor(levelColor) // TÚ ACCIÓN: COLOR
+                        Text("1") // TÚ ACCIÓN: FUENTE (Podrías calcular el nivel)
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
                     }
+                    Spacer()
                 }
-                
-                // Learning path with isometric blocks
-                ZStack {
-                    // Background dotted pattern
-                    IsometricPatternBackground()
-                    
-                    // Path lines
-                    IsometricPathLines(lessons: lessons)
-                    
-                    // Lesson blocks positioned at each point
-                    ForEach(lessons) { lesson in
-                        IsometricLessonBlock(lesson: lesson)
-                            .position(positionForLesson(id: lesson.id))
-                    }
-                }
-                .frame(height: 750)
                 .padding(.horizontal)
+
+                GeometryReader { geometry in
+                    let containerWidth = geometry.size.width
+                    let centerX = containerWidth / 2
+
+                    ZStack {
+                        IsometricPatternBackground()
+                        
+                        DynamicIsometricPathLines(
+                            lessons: lessons,
+                            nodeVisualHeight: nodeVisualHeight,
+                            verticalSpacing: verticalSpacingPerNode,
+                            horizontalMagnitude: horizontalZigZagMagnitude, // Pasando el parámetro
+                            containerWidth: containerWidth // Pasando el ancho del contenedor
+                        )
+
+                        ForEach(lessons.indices, id: \.self) { index in
+                            let lesson = lessons[index]
+                            IsometricLessonBlock(lesson: lesson)
+                                .frame(width: nodeVisualWidth)
+                                .position(calculateNodePosition(
+                                    forIndex: index,
+                                    totalLessons: lessons.count,
+                                    verticalSpacing: verticalSpacingPerNode,
+                                    horizontalMagnitude: horizontalZigZagMagnitude,
+                                    containerWidth: containerWidth, // Usamos el ancho del GeometryReader
+                                    topPadding: nodeVisualHeight * 0.7 // Ajusta para el primer nodo
+                                ))
+                        }
+                    }
+                    // Altura dinámica para el contenedor del path
+                    .frame(height: max(400, CGFloat(lessons.count) * verticalSpacingPerNode + nodeVisualHeight))
+                }
+                // No necesitas el .padding(.horizontal, pathHorizontalPadding) aquí si el GeometryReader ya ocupa el ancho deseado.
+                // Si quieres que el path esté más centrado, aplica padding al GeometryReader o ajusta el cálculo de centerX.
+                .padding(.horizontal, pathHorizontalPadding) // Mantenemos un padding general para el área del path
+
             }
+            .padding(.bottom, 30)
         }
-        .background(Color(red: 0.97, green: 0.97, blue: 1.0).ignoresSafeArea())
+        .background(pathBackgroundColor.ignoresSafeArea())
     }
     
-    // Calculate positions for each lesson node based on ID
-    private func positionForLesson(id: Int) -> CGPoint {
-        switch id {
-        case 1:
-            return CGPoint(x: 160, y: 200)
-        case 2:
-            return CGPoint(x: 240, y: 380)
-        case 3:
-            return CGPoint(x: 180, y: 560)
-        case 4:
-            return CGPoint(x: 160, y: 740)
-        default:
-            return CGPoint(x: 180, y: 300)
+    // --- Lógica de Posicionamiento Dinámico para los BLOQUES ---
+    func calculateNodePosition(forIndex index: Int, totalLessons: Int, verticalSpacing: CGFloat, horizontalMagnitude: CGFloat, containerWidth: CGFloat, topPadding: CGFloat) -> CGPoint {
+        let yPos = topPadding + CGFloat(index) * verticalSpacing
+        let centerX = containerWidth / 2 // Centro del espacio disponible para el path
+        
+        var xPos = centerX
+        if totalLessons > 1 {
+            if index == 0 { // Primer nodo ligeramente a la izquierda si el siguiente va a la derecha
+                xPos = centerX + ((1 % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0) // Centrado si solo hay 2
+            } else if index == totalLessons - 1 { // Último nodo
+                xPos = centerX + (((totalLessons - 2) % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0) // Centrado si solo hay 2
+            } else { // Nodos intermedios
+                let direction: CGFloat = (index % 2 == 0) ? -0.5 : 0.5
+                xPos = centerX + direction * horizontalMagnitude
+            }
         }
+        return CGPoint(x: xPos, y: yPos)
     }
 }
 
+// MARK: - Subvistas (Tus structs actuales, algunas modificadas)
 
-// Background with isometric dots pattern
 struct IsometricPatternBackground: View {
     var body: some View {
         GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-            
+            let width = geometry.size.width; let height = geometry.size.height
             Path { path in
-                // Create a grid of dots
                 let spacing = 30.0
-                for x in stride(from: 0, to: width, by: spacing) {
-                    for y in stride(from: 0, to: height, by: spacing) {
-                        let offsetX = y.truncatingRemainder(dividingBy: (2 * spacing)) == 0 ? 0 : spacing/2
-                        path.addEllipse(in: CGRect(x: x + offsetX, y: y, width: 2, height: 2))
+                for xCoord in stride(from: 0, to: width, by: spacing) {
+                    for yCoord in stride(from: 0, to: height, by: spacing) {
+                        let offsetX = yCoord.truncatingRemainder(dividingBy: (2 * spacing)) == 0 ? 0 : spacing/2
+                        path.addEllipse(in: CGRect(x: xCoord + offsetX, y: yCoord, width: 2, height: 2))
                     }
                 }
-            }
-            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            }.stroke(Color.gray.opacity(0.2), lineWidth: 1) // Más sutil
         }
     }
 }
 
-// Isometric path lines connecting the lesson blocks
-struct IsometricPathLines: View {
+struct DynamicIsometricPathLines: View {
     let lessons: [Lesson]
+    let nodeVisualHeight: CGFloat
+    let verticalSpacing: CGFloat
+    let horizontalMagnitude: CGFloat
+    let containerWidth: CGFloat // Ancho del GeometryReader que contiene el path
     
+    // Lógica de posicionamiento (debe ser idéntica a la de HomeView para los bloques)
+    private func calculateNodePosition(forIndex index: Int) -> CGPoint {
+        let yPos = nodeVisualHeight / 2 + CGFloat(index) * verticalSpacing // Centro Y del nodo
+        let centerX = containerWidth / 2
+        
+        var xPos = centerX
+        if lessons.count > 1 {
+            if index == 0 {
+                xPos = centerX + ((1 % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0)
+            } else if index == lessons.count - 1 {
+                xPos = centerX + (((lessons.count - 2) % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0)
+            } else {
+                let direction: CGFloat = (index % 2 == 0) ? -0.5 : 0.5
+                xPos = centerX + direction * horizontalMagnitude
+            }
+        }
+        return CGPoint(x: xPos, y: yPos)
+    }
+
     var body: some View {
         Path { path in
-            // Starting point
-            path.move(to: CGPoint(x: 120, y: 140))
-            
-            // First segment - down and right
-            path.addLine(to: CGPoint(x: 160, y: 180))
-            
-            // Continue to lesson 1
-            path.addLine(to: CGPoint(x: 160, y: 200))
-            
-            // From lesson 1 to next segment
-            path.move(to: CGPoint(x: 160, y: 220))
-            path.addLine(to: CGPoint(x: 160, y: 280))
-            
-            // Curve to next lesson
-            path.addQuadCurve(
-                to: CGPoint(x: 240, y: 360),
-                control: CGPoint(x: 200, y: 320)
-            )
-            
-            // To lesson 2
-            path.addLine(to: CGPoint(x: 240, y: 380))
-            
-            // From lesson 2 to lesson 3
-            path.move(to: CGPoint(x: 240, y: 400))
-            path.addQuadCurve(
-                to: CGPoint(x: 180, y: 540),
-                control: CGPoint(x: 210, y: 470)
-            )
-            
-            // To lesson 3
-            path.addLine(to: CGPoint(x: 180, y: 560))
-            
-            // From lesson 3 to lesson 4
-            path.move(to: CGPoint(x: 180, y: 580))
-            path.addQuadCurve(
-                to: CGPoint(x: 160, y: 720),
-                control: CGPoint(x: 170, y: 650)
-            )
-            
-            // To lesson 4
-            path.addLine(to: CGPoint(x: 160, y: 740))
+            guard lessons.count > 1 else { return }
+
+            for i in 0..<(lessons.count - 1) {
+                let startPoint = calculateNodePosition(forIndex: i)
+                let endPoint = calculateNodePosition(forIndex: i + 1)
+                
+                path.move(to: startPoint)
+                
+                // Lógica de curva suave (ajusta los puntos de control según sea necesario)
+                let midX = (startPoint.x + endPoint.x) / 2
+                let midY = (startPoint.y + endPoint.y) / 2
+                
+                // Puntos de control para crear una forma de 'S' suave entre nodos
+                let control1X = startPoint.x
+                let control1Y = midY
+                let control2X = endPoint.x
+                let control2Y = midY
+                
+                if abs(startPoint.x - endPoint.x) < 10 { // Si están casi verticales, línea recta
+                    path.addLine(to: endPoint)
+                } else {
+                    path.addCurve(to: endPoint,
+                                  control1: CGPoint(x: control1X, y: control1Y + (startPoint.y < endPoint.y ? 20 : -20)),
+                                  control2: CGPoint(x: control2X, y: control2Y - (startPoint.y < endPoint.y ? 20 : -20)))
+                }
+            }
         }
         .stroke(
             LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.7), Color.blue.opacity(0.5)]),
+                gradient: Gradient(colors: [Color.blue.opacity(0.5), Color.blue.opacity(0.3)]), // TÚ ACCIÓN: COLOR
                 startPoint: .top,
                 endPoint: .bottom
             ),
-            style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round)
+            style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round)
         )
-        
-        // Special marker for active part of the path
-        Path { path in
-            // Green marker for the active lesson
-            let activeLessonIndex = lessons.firstIndex(where: { !$0.isCompleted }) ?? 0
-            
-            if activeLessonIndex > 0 && activeLessonIndex < lessons.count {
-                path.addEllipse(in: CGRect(x: 225, y: 365, width: 30, height: 30))
-            }
-        }
-        .fill(Color.green)
+        // Podrías añadir aquí el marcador de lección activa
+        // calculando la posición del primer `lesson` donde `!isCompleted`.
     }
 }
 
-// Isometric 3D block for each lesson node
 struct IsometricLessonBlock: View {
     let lesson: Lesson
     @State private var isPressed: Bool = false
     @State private var showLessonView: Bool = false
     
+    var blockColor: Color {
+        lesson.isCompleted ? Color.green.opacity(0.7) : (lesson.type == .locked ? Color.gray.opacity(0.5) : Color.blue.opacity(0.7)) // TÚ ACCIÓN: COLORES
+    }
+    var iconContainerColor: Color { // Para el fondo del ícono si es diferente al bloque
+        lesson.isCompleted ? Color.green : (lesson.type == .locked ? Color.gray : Color.blue)
+    }
+
     var body: some View {
-        VStack(spacing: 10) {
-            // 3D Isometric Block
+        VStack(spacing: 6) { // Menor espaciado
             ZStack {
-                // Bottom layer (shadow)
-                IsometricBlock(size: 50, depth: 14, color: lesson.isCompleted ? Color.blue : (lesson.type == .locked ? Color.gray : Color.blue))
-                    .offset(y: isPressed ? 2 : 0)
+                IsometricBlock(size: 40, depth: 10, color: blockColor) // Bloque más pequeño
+                    .offset(y: isPressed ? 1 : 0)
                 
-                // Icon in the center
-                ZStack {
-                    Rectangle()
-                        .fill(lesson.isCompleted ? Color.blue : (lesson.type == .locked ? Color.gray.opacity(0.8) : Color.blue.opacity(0.8)))
-                        .frame(width: 44, height: 44)
+                ZStack { // Contenedor del ícono
+                    // Puedes usar un Circle o Rectangle como fondo del ícono si deseas
+                    // Circle().fill(iconContainerColor.opacity(0.5)).frame(width: 30, height: 30)
                     
                     if lesson.type == .locked {
                         Image(systemName: "lock.fill")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 13, weight: .bold)) // TÚ ACCIÓN: FUENTE
+                            .foregroundColor(.white.opacity(0.8))
                     } else {
                         Image(systemName: lesson.icon)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 16, weight: .bold)) // TÚ ACCIÓN: FUENTE
                             .foregroundColor(.white)
                     }
                 }
-                .offset(y: isPressed ? 2 : 0)
+                .offset(y: isPressed ? 0.5 : -1.5) // Ajuste fino del ícono
             }
-            .shadow(color: Color.black.opacity(0.2), radius: 5, x: 2, y: 5)
+            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0.5, y: 1.5) // Sombra más sutil
             
-            // Lesson title
             Text(lesson.title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.black)
+                .font(.system(size: 11, weight: .medium)) // TÚ ACCIÓN: FUENTE
+                .foregroundColor(Color.black.opacity(0.7))
                 .multilineTextAlignment(.center)
-                .frame(width: 120)
+                .frame(width: 90, height: 28) // Ajusta para que el texto quepa
+                .lineLimit(2)
         }
-        .opacity(lesson.type == .locked ? 0.7 : 1.0)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .opacity(lesson.type == .locked ? 0.65 : 1.0)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
         .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
-        // Navigation and press effects only if not locked
         .onTapGesture {
             if lesson.type != .locked {
-                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                    isPressed = true
-                }
-                
-                // Reset the pressed state after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) { isPressed = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) { isPressed = false }
                     showLessonView = true
                 }
             }
         }
         .sheet(isPresented: $showLessonView) {
             if lesson.type != .locked {
-                LessonDetailView(lesson: lesson)
+                LessonDetailView(lesson: lesson) // Asume que LessonDetailView está definida
             }
         }
     }
 }
 
-// Isometric 3D block
 struct IsometricBlock: View {
-    let size: CGFloat
-    let depth: CGFloat
-    let color: Color
-    
+    let size: CGFloat; let depth: CGFloat; let color: Color
     var body: some View {
         ZStack {
-            // Top face
-            Rectangle()
-                .fill(color)
-                .frame(width: size, height: size)
-            
-            // Right side face
-            Path { path in
-                path.move(to: CGPoint(x: size/2, y: -size/2))
-                path.addLine(to: CGPoint(x: size/2 + depth, y: -size/2 + depth/2))
-                path.addLine(to: CGPoint(x: size/2 + depth, y: size/2 + depth/2))
-                path.addLine(to: CGPoint(x: size/2, y: size/2))
-                path.closeSubpath()
-            }
-            .fill(color.opacity(0.8))
-            
-            // Left side face
-            Path { path in
-                path.move(to: CGPoint(x: -size/2, y: -size/2))
-                path.addLine(to: CGPoint(x: -size/2 + depth, y: -size/2 + depth/2))
-                path.addLine(to: CGPoint(x: -size/2 + depth, y: size/2 + depth/2))
-                path.addLine(to: CGPoint(x: -size/2, y: size/2))
-                path.closeSubpath()
-            }
-            .fill(color.opacity(0.6))
+            Rectangle().fill(color).frame(width: size, height: size)
+            Path { path in path.move(to: CGPoint(x: size/2, y: -size/2)); path.addLine(to: CGPoint(x: size/2 + depth, y: -size/2 + depth/2)); path.addLine(to: CGPoint(x: size/2 + depth, y: size/2 + depth/2)); path.addLine(to: CGPoint(x: size/2, y: size/2)); path.closeSubpath() }.fill(color.opacity(0.85)) // Más opaco para mejor 3D
+            Path { path in path.move(to: CGPoint(x: -size/2, y: -size/2)); path.addLine(to: CGPoint(x: -size/2 + depth, y: -size/2 + depth/2)); path.addLine(to: CGPoint(x: -size/2 + depth, y: size/2 + depth/2)); path.addLine(to: CGPoint(x: -size/2, y: size/2)); path.closeSubpath() }.fill(color.opacity(0.70)) // Más opaco
         }
     }
 }
 
-// Exercise row component
-struct ExerciseRow: View {
-    let title: String
-    let description: String
-    
-    var body: some View {
-        HStack(spacing: 15) {
-            // Exercise icon
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.blue.opacity(0.1))
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: "book.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(.blue)
-            }
-            
-            // Exercise details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
-        )
-    }
-}
-
-
+// --- Preview ---
 #Preview {
     HomeView()
 }
-    
-    

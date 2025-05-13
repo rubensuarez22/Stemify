@@ -16,10 +16,10 @@ struct NavigationBar: View {
         
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView()
+            LandingPage()
                 .tabItem {
-                    Image(systemName: "game.fill")
-                    Text("Learning Paths")
+                    Image(systemName: "person.fill")
+                    Text("Home")
                 }
                 .tag(1)
             

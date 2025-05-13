@@ -10,15 +10,9 @@ import SwiftUI
 import UIKit
 
 extension Color {
-    public static let primaryGreen = Color(hex: "#7B51CC")
-    public static let darkGreen = Color(hex: "#283618")
-    public static let cream = Color(hex: "#FEFAE0")
-    public static let orange = Color(hex: "#DDA15E")
-    public static let brown = Color(hex: "#BC6C2")
-    public static let navyBlue = Color(hex: "#003049")
-    public static let mustardYellow = Color(hex: "#FFB703")
-    public static let opaqueRed = Color(hex: "#C1121F")
-    public static let lightGreen = Color(hex: "#A7C957")
+    public static let primaryOrange = Color(hex: "#ED9E50")
+    public static let cream = Color(hex: "#FDF5EC")
+    public static let primaryTextColor = Color(hex: "222222")
 }
 
 extension Color {

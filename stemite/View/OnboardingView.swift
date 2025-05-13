@@ -18,6 +18,7 @@ struct QuizOption: Identifiable, Hashable {
 
 // --- Vista Principal del Quiz con Paginación ---
 struct OnboardingView: View {
+    var selectedGender: WelcomeView.Gender?
     // Estado para la página actual del TabView
     @State private var currentPage = 0
     // Estado para almacenar las respuestas (opcional, depende de si necesitas guardarlas)
@@ -55,8 +56,9 @@ struct OnboardingView: View {
     @State private var selectedOptionID: UUID?
     // Estado para mostrar el botón final
     @State private var showFinalButton = false
-
-    init() {
+    
+    init(selectedGender: WelcomeView.Gender? = nil) {
+            self.selectedGender = selectedGender
         // Inicializar el array de respuestas con nil para cada pregunta
         _answers = State(initialValue: Array(repeating: nil, count: questions.count))
     }

@@ -10,7 +10,7 @@ struct LaunchView: View {
     
     // --- Color Primario (Asegúrate que esté definido) ---
     // Si no, usa Color.green o el color que prefieras
-    let primaryColor = Color.primaryGreen
+    let primaryColor = Color.primaryOrange
     
     var body: some View {
         ZStack {

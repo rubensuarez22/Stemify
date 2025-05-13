@@ -12,5 +12,10 @@ struct User {
     var id: UUID
     var gender: String
     var avatar: Image?
+    var skills: [String: Int]? = [
+        "Computer Science": 95,
+        "Mechanical Engineering": 92,
+        "Electrical Engineering": 88
+    ]
 }
 

@@ -115,7 +115,24 @@ struct OnboardingOptionCard: View {
     let isSelected: Bool
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            if UIImage(named: option.imageName) != nil { Image(option.imageName).resizable().aspectRatio(contentMode: .fill).frame(height: 140).clipped()
+            if UIImage(named: option.imageName) != nil { Image(option.imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 140)
+                                .clipped()
+                            // Gradiente inferior
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.black.opacity(0.3), Color.black.opacity(0.7), Color.black.opacity(0.7)]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            
+                            // Gradiente superior
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.black.opacity(0.4), .clear]),
+                                startPoint: .top,
+                                endPoint: .init(x: 0.5, y: 0.3)
+                            )
             } else { option.accentColor.opacity(0.3).frame(height: 140) }
             LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.7), .clear]), startPoint: .bottom, endPoint: .center).frame(height: 140)
             Text(option.text)

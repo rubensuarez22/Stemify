@@ -24,23 +24,25 @@ struct QuizOption: Identifiable, Hashable {
     // var isCorrect: Bool = false // Si lo necesitas para SubChallengeDetailView
 }
 let sampleOnboardingQuestions: [QuizQuestion] = [
-    QuizQuestion(questionText: "¿Qué 'vida de pro' te llama más la atención? ✨🔥",
+    QuizQuestion(questionText: "Si pudieras darle un extra a la tecnología, ¿qué te gustaría más? ✨🚀",
                  options: [
-                    QuizOption(text: "REVENTARLA COMO STREAMER PRO", imageName: "streamer_setup_placeholder", accentColor: Color.green),
-                    QuizOption(text: "DISEÑAR LOS JUEGOS DEL MAÑANA", imageName: "game_design_placeholder", accentColor: Color.orange),
-                    QuizOption(text: "SER EL CEREBRO DETRÁS DEL PRÓXIMO HIT", imageName: "tech_brain_placeholder", accentColor: Color.blue)
+                    QuizOption(text: "Que las computadoras entiendan ideas y organicen todo solas. 🧠💻", imageName: "compu", accentColor: Color.blue), // Apunta a Sistemas
+                    QuizOption(text: "Que los aparatos cobren vida con luces y energía al instante. 💡🔌", imageName: "devi", accentColor: Color.green), // Apunta a Electrónica
+                    QuizOption(text: "Que las máquinas se muevan y nos ayuden como amigos mecánicos. 🦾🌟", imageName: "mach", accentColor: Color.red) // Apunta a Robótica
                  ]),
-    QuizQuestion(questionText: "Si tuvieras un día libre y $1000, ¿en qué los gastarías? 💸🤔",
+
+    QuizQuestion(questionText: "Cuando tu celular falla, ¿qué es lo primero que te preguntas? 🤔🔧",
                  options: [
-                    QuizOption(text: "EL MEJOR EQUIPO GAMER", imageName: "gamer_gear_placeholder", accentColor: Color.purple),
-                    QuizOption(text: "CURSOS PARA CREAR ALGO ÉPICO", imageName: "online_courses_placeholder", accentColor: Color.yellow),
-                    QuizOption(text: "INVERTIR PARA MÁS LANA", imageName: "investment_chart_placeholder", accentColor: Color.cyan)
+                    QuizOption(text: "Cómo pensaba o qué instrucciones no siguió bien. 📝🤯", imageName: "smartphone", accentColor: Color.purple), // Apunta a Sistemas
+                    QuizOption(text: "Qué piecita interna o 'chispa' dejó de funcionar correctamente. 🔩⚡", imageName: "board", accentColor: Color.orange), // Apunta a Electrónica
+                    QuizOption(text: "Por qué sus partes no lograron trabajar juntas para hacer su tarea. ⚙️🤷", imageName: "cogs", accentColor: Color.cyan) // Apunta a Robótica
                  ]),
-    QuizQuestion(questionText: "¿Qué te emociona más de la tecnología del futuro? 👽🚀",
+
+    QuizQuestion(questionText: "Imagina que tienes un taller de inventor. ¿Qué podrías hacer por horas? 🛠️🤩",
                  options: [
-                    QuizOption(text: "REALIDAD VIRTUAL INMERSIVA", imageName: "vr_world_placeholder", accentColor: Color.red),
-                    QuizOption(text: "INTELIGENCIA ARTIFICIAL QUE LO RESUELVA TODO", imageName: "ai_brain_placeholder", accentColor: Color.teal),
-                    QuizOption(text: "VIAJES ESPACIALES ACCESIBLES", imageName: "space_travel_placeholder", accentColor: Color.pink)
+                    QuizOption(text: "Ideas y planes para que las computadoras hagan cosas nuevas y útiles. 💡📲", imageName: "think", accentColor: Color.teal), // Apunta a Sistemas
+                    QuizOption(text: "Pequeños gadgets que se iluminen o hagan sonidos al tocarlos. ✨🔊", imageName: "leds", accentColor: Color.pink), // Apunta a Electrónica
+                    QuizOption(text: "Juguetes que se muevan solos y exploren el mundo. 🤖🧭", imageName: "toys", accentColor: Color.yellow) // Apunta a Robótica
                  ])
 ]
 

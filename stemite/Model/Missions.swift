@@ -77,60 +77,63 @@ struct MissionTeaser: Identifiable {
     // let subChallenges: [SubChallenge]
 }
 
-// Datos de Ejemplo para el Hub de Misiones
+// Datos de Ejemplo para el Hub de Misiones - Optimizados para el espacio en CardView
 let sampleMissionTeasers: [MissionTeaser] = [
-    MissionTeaser(title: "EL CÓDIGO SECRETO DE LOS LIKES (Y CÓMO TU CEL PODRÍA IMPRIMIR BILLETES 💸📱)",
-                  imageName: "mission_likes_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 1.0, green: 0.48, blue: 0.0), // Naranja
-                  challengesCount: 4,
-                  xpRewardTotal: 150,
-                  subtitle: "subtitle test",
-                  tag:.popular),
-    MissionTeaser(title: "EL CÓDIGO SECRETO DE LOS LIKES (Y CÓMO TU CEL PODRÍA IMPRIMIR BILLETES 💸📱)",
-                  imageName: "mission_likes_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 1.0, green: 0.48, blue: 0.0), // Naranja
-                  challengesCount: 4,
-                  xpRewardTotal: 150,
-                  subtitle: "subtitle test",
-                  tag:.nuevo),
-    MissionTeaser(title: "EL CÓDIGO SECRETO DE LOS LIKES (Y CÓMO TU CEL PODRÍA IMPRIMIR BILLETES 💸📱)",
-                  imageName: "mission_likes_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 1.0, green: 0.48, blue: 0.0), // Naranja
-                  challengesCount: 4,
-                  xpRewardTotal: 150,
-                  subtitle: "subtitle test",
-                  tag:.nuevo),
-    MissionTeaser(title: "EL CÓDIGO SECRETO DE LOS LIKES (Y CÓMO TU CEL PODRÍA IMPRIMIR BILLETES 💸📱)",
-                  imageName: "mission_likes_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 1.0, green: 0.48, blue: 0.0), // Naranja
-                  challengesCount: 4,
-                  xpRewardTotal: 150,
-                  subtitle: "subtitle test",
-                  tag:.nuevo),
-    MissionTeaser(title: "GADGETS QUE VALEN MILLONES (Y CÓMO DISEÑARLOS EN TU CUARTO 🛠️💰)",
-                  imageName: "mission_gadgets_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 0.22, green: 0.80, blue: 0.08), // Verde Lima
-                  challengesCount: 5,
-                  xpRewardTotal: 200,
-                  subtitle: "subtitle test",
-                  tag:.popular),
-    MissionTeaser(title: "LOS TRUCOS DE LOS GIGANTES TECH (PARA QUE TE FORRES COMO ELLOS, ALGÚN DÍA 🕴️📈)",
-                  imageName: "mission_giants_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 0.36, green: 0.35, blue: 0.90), // Un morado/índigo
-                  challengesCount: 3,
-                  xpRewardTotal: 120
-                  ,
-                  subtitle: "subtitle test",
-                  tag: nil),
-    MissionTeaser(title: "TU HUELLA DIGITAL: ¿HÉROE O VILLANO? (PROTÉGETE Y DOMINA LA RED 🕵️‍♂️🔒)",
-                  imageName: "mission_cyber_bg", // Debes tener esta imagen en Assets
-                  accentColor: Color(red: 0.0, green: 0.75, blue: 0.85), // Un cyan/azul claro
-                  challengesCount: 4,
-                  xpRewardTotal: 100,
-                  subtitle: "subtitle test",
-                  tag: .popular)
+    MissionTeaser(
+        title: "FORTNITE A 120FPS CON ESTOS HACKS 🎮",
+        imageName: "fortnite", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 0.0, green: 0.53, blue: 1.0), // Azul Fortnite
+        challengesCount: 5,
+        xpRewardTotal: 150,
+        subtitle: "Descubre la optimización de hardware",
+        tag: .popular
+    ),
+    MissionTeaser(
+        title: "CHATGPT RESPONDE ASÍ A TUS PREGUNTAS 🤖",
+        imageName: "ChatGPT", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 0.18, green: 0.8, blue: 0.44), // Verde ChatGPT
+        challengesCount: 4,
+        xpRewardTotal: 160,
+        subtitle: "Explora cómo la IA aprende a pensar como humano",
+        tag: .nuevo
+    ),
+    MissionTeaser(
+        title: "CREA TU FILTRO VIRAL PARA TIKTOK 🎭",
+        imageName: "tiktok", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 0.94, green: 0.3, blue: 0.3), // Rojo TikTok
+        challengesCount: 6,
+        xpRewardTotal: 180,
+        subtitle: "Realidad aumentada en cualquier lugar",
+        tag: .popular
+    ),
+    MissionTeaser(
+        title: "DETECTIVE DIGITAL: RESUELVE MISTERIOS 🔍",
+        imageName: "detect", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 0.22, green: 0.80, blue: 0.08), // Verde Lima
+        challengesCount: 5,
+        xpRewardTotal: 200,
+        subtitle: "Descubre como se resguardan tus datos",
+        tag: .nuevo
+    ),
+    MissionTeaser(
+        title: "IDEA TU APP Y HAZTE MILLONARIO 💰📱",
+        imageName: "code", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 1.0, green: 0.48, blue: 0.0), // Naranja
+        challengesCount: 7,
+        xpRewardTotal: 220,
+        subtitle: "Desarrolla ideas de aplicaciones y aprende programación",
+        tag: .popular
+    ),
+    MissionTeaser(
+        title: "ROBOT QUE HACE TU TAREA EN SECRETO 🤖",
+        imageName: "robo", // Debes tener esta imagen en Assets
+        accentColor: Color(red: 0.91, green: 0.2, blue: 0.25), // Rojo robot
+        challengesCount: 5,
+        xpRewardTotal: 210,
+        subtitle: "Como se mueven los brazos de un robot ",
+        tag: .popular
+    )
 ]
-
 // Para SubChallengeDetailView y MissionPlayerView
 let sampleSubChallenge1 = SubChallenge(
     missionTitle: "El Código Secreto de los Likes",

@@ -114,93 +114,124 @@ struct LandingPage: View {
     }
 }
 
-// --- Subvista para la Tarjeta de Misión (CON XP y Retos) ---
+// Solución alternativa con GeometryReader para mayor control
 struct MissionCardViewNew: View {
     let missionTeaser: MissionTeaser
     let cardTextColor = Color.white
     let cardInfoColor = Color.white.opacity(0.9)
     let iconInfoColor = Color.yellow
+    
+    // Computar dinámicamente el tamaño de la fuente basado en la longitud del título
+    private var dynamicTitleFontSize: CGFloat {
+        let titleLength = missionTeaser.title.count
+        if titleLength > 35 {
+            return 12 // Títulos muy largos
+        } else if titleLength > 25 {
+            return 13 // Títulos largos
+        } else {
+            return 14 // Títulos normales o cortos
+        }
+    }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            
-            Image(missionTeaser.imageName) // TÚ ACCIÓN: Asegura que la imagen exista en Assets
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(height: 170)
-                .clipped()
-
-            LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.0), Color.black.opacity(0.15), Color.black.opacity(0.70)]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.4), .clear]),
-                startPoint: .top,
-                endPoint: .init(x: 0.5, y: 0.3)
-            )
-
-            VStack(alignment: .leading, spacing: 5) {
-                Spacer()
-
-                Text(missionTeaser.title.uppercased())
-                    .font(.system(size: 17, weight: .heavy)) // TÚ ACCIÓN: FUENTE Y TAMAÑO
-                    .foregroundColor(cardTextColor)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
-                    .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
-
-                if let subtitle = missionTeaser.subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 11, weight: .medium)) // TÚ ACCIÓN: FUENTE Y TAMAÑO
-                        .foregroundColor(cardTextColor.opacity(0.85))
+        // Usar GeometryReader para tener control preciso del tamaño
+        GeometryReader { geometry in
+            ZStack(alignment: .topLeading) {
+                // Contenedor principal con bordes redondeados
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.clear)
+                    .frame(width: geometry.size.width, height: 170)
+                
+                // Imagen con overlay
+                ZStack {
+                    // La imagen base
+                    Image(missionTeaser.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .blur(radius: 2.7)
+                        .frame(width: geometry.size.width, height: 170)
+                    
+                    // Gradiente inferior
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.black.opacity(0.3), Color.black.opacity(0.7), Color.black.opacity(0.7)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    
+                    // Gradiente superior
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.black.opacity(0.4), .clear]),
+                        startPoint: .top,
+                        endPoint: .init(x: 0.5, y: 0.3)
+                    )
+                }
+                .frame(width: geometry.size.width, height: 170)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                
+                // Contenido de texto e información
+                VStack(alignment: .leading, spacing: 5) {
+                    Spacer()
+                    
+                    Text(missionTeaser.title.uppercased())
+                        .font(.system(size: dynamicTitleFontSize, weight: .heavy))
+                        .foregroundColor(cardTextColor)
                         .lineLimit(2)
                         .minimumScaleFactor(0.75)
-                        .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
-                        .padding(.bottom, 6)
-                }
-
-                HStack(spacing: 12) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "list.bullet.rectangle.portrait.fill")
-                            .font(.system(size: 10, weight: .regular)) // TÚ ACCIÓN: FUENTE (tamaño ícono)
-                            .foregroundColor(iconInfoColor)
-                        Text("\(missionTeaser.challengesCount) Retos")
-                            .font(.system(size: 10, weight: .semibold)) // TÚ ACCIÓN: FUENTE
-                            .foregroundColor(cardInfoColor)
+                        .lineSpacing(0)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                    
+                    if let subtitle = missionTeaser.subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(cardTextColor.opacity(0.85))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                            .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
+                            .padding(.bottom, 6)
                     }
                     
-                    HStack(spacing: 3) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 10, weight: .regular)) // TÚ ACCIÓN: FUENTE (tamaño ícono)
-                            .foregroundColor(iconInfoColor)
-                        Text("\(missionTeaser.xpRewardTotal) XP")
-                            .font(.system(size: 10, weight: .semibold)) // TÚ ACCIÓN: FUENTE
-                            .foregroundColor(cardInfoColor)
+                    HStack(spacing: 12) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "list.bullet.rectangle.portrait.fill")
+                                .font(.system(size: 10, weight: .regular))
+                                .foregroundColor(iconInfoColor)
+                            Text("\(missionTeaser.challengesCount) Retos")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(cardInfoColor)
+                        }
+                        
+                        HStack(spacing: 3) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 10, weight: .regular))
+                                .foregroundColor(iconInfoColor)
+                            Text("\(missionTeaser.xpRewardTotal) XP")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(cardInfoColor)
+                        }
+                        Spacer()
                     }
-                    Spacer()
+                    .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
                 }
-                .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
-
+                .padding(10)
+                .frame(width: geometry.size.width, height: 170, alignment: .bottomLeading)
+                
+                // Tag (Nuevo/Popular)
+                if let tag = missionTeaser.tag {
+                    Text(tag.rawValue)
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(tag == .nuevo ? Color(hex: "#33658A") : Color(hex: "#8AC926"))
+                        .clipShape(Capsule())
+                        .padding([.top, .leading], 8)
+                }
             }
-            .padding(10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-
-            if let tag = missionTeaser.tag {
-                Text(tag.rawValue)
-                    .font(.system(size: 8, weight: .bold)) // TÚ ACCIÓN: FUENTE (más pequeño)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(tag == .nuevo ? Color(hex: "#33658A") : Color(hex: "#8AC926"))
-                    .clipShape(Capsule())
-                    .padding([.top, .leading], 8)
-            }
+            .frame(width: geometry.size.width, height: 170)
+            .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 3)
         }
-        .frame(height: 170)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 3)
+        .frame(height: 170) // Altura fija para el GeometryReader
     }
 }
 

@@ -116,12 +116,12 @@ struct ProfileView: View {
     // MARK: - Career Match Section
     var careerMatchSection: some View {
         VStack(alignment: .center, spacing: 10) {
-            Text("Tu Carrera STEM Ideal ✨")
+            Text("✨ Tu Carrera Ideal ✨")
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.primaryTextColor)
             
-            Text("Basado en tus habilidades e intereses")
+            Text("Basado en tus misiones coompletadas")
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .padding(.bottom, 40)

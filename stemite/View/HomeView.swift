@@ -243,7 +243,7 @@ struct MilestonePathView: View {
     let primaryTextColor = Color(UIColor(red: 0.17, green: 0.24, blue: 0.31, alpha: 1.0)) // #2C3E50
     let secondaryTextColor = Color(UIColor(red: 0.5, green: 0.55, blue: 0.55, alpha: 1.0)) // #7F8C8D
     let levelHexagonColor = Color(UIColor(red: 0.95, green: 0.61, blue: 0.07, alpha: 1.0)) // #F39C12
-    let progressBarColor = Color(UIColor(red: 0.2, green: 0.4, blue: 0.54, alpha: 1.0)) // #33658A
+    let progressBarColor = Color(Color.azuli) // #33658A
     let starColor = Color(UIColor(red: 0.95, green: 0.77, blue: 0.06, alpha: 1.0)) // #F1C40F
     
     // Constants for zigzag layout

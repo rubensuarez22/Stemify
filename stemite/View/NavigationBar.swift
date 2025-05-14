@@ -18,8 +18,8 @@ struct NavigationBar: View {
         TabView(selection: $selectedTab) {
             LandingPage()
                 .tabItem {
-                    Image(systemName: "person.fill")
-                    Text("Home")
+                    Image(systemName: "target")
+                    Text("Misiones")
                 }
                 .tag(1)
             

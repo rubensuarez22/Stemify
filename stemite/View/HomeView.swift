@@ -1,323 +1,377 @@
 import SwiftUI
-
-// MARK: - Modelos (Definidos aquí para que el archivo sea autocontenido)
-// En un proyecto más grande, estos irían en un archivo de Modelos separado.
-enum LessonType {
-    case standard
-    case checkpoint
-    case locked
-}
+import SceneKit
 
 
-
-// MARK: - Vista Principal HomeView
-
-struct HomeView: View {
-    // Sample lesson data
-    @State var lessons: [Lesson] = [ // @State si isCompleted puede cambiar
-        Lesson(id: 1, title: "Building Patterns", isCompleted: true, icon: "checkmark.seal.fill", type: .standard),
-        Lesson(id: 2, title: "Practice Building Patterns", isCompleted: false, icon: "number.circle.fill", type: .standard), // Cambié a ícono más visual
-        Lesson(id: 3, title: "Pattern Rules", isCompleted: false, icon: "square.stack.3d.up.fill", type: .standard),
-        Lesson(id: 4, title: "Practice Pattern", isCompleted: false, icon: "lock.circle.fill", type: .locked), // Cambié a ícono más visual
-        Lesson(id: 5, title: "Advanced Challenge", isCompleted: false, icon: "star.fill", type: .standard),
-        Lesson(id: 6, title: "Final Project", isCompleted: false, icon: "flag.checkered.2.crossed", type: .locked)
-    ]
+// MARK: - Alternative SceneKit Implementation
+struct Milestone3DView: View {
+    let milestone: Milestone
+    @State private var isPressed = false
+    @Binding var selectedMilestone: Milestone?
     
-    // --- Colores y Fuentes (Ejemplos, ¡AJÚSTALOS!) ---
-    let headerTextColor = Color.primary // Se adapta a Light/Dark mode
-    let levelColor = Color.blue       // TÚ ACCIÓN: Define tu color
-    let pathBackgroundColor = Color(red: 0.97, green: 0.97, blue: 0.985) // Un gris/lila muy pálido
-
-    // --- Parámetros para el Layout Isométrico Dinámico ---
-    let nodeVisualWidth: CGFloat = 100  // Ancho del VStack del IsometricLessonBlock (incluyendo título)
-    let nodeVisualHeight: CGFloat = 80 // Alto APROXIMADO del VStack del IsometricLessonBlock (para centrar)
-    
-    let verticalSpacingPerNode: CGFloat = 140 // Espacio vertical ENTRE CENTROS de nodos
-    let horizontalZigZagMagnitude: CGFloat = 60 // Cuánto se mueve a izq/der en el zigzag
-    let pathHorizontalPadding: CGFloat = 20 // Padding a los lados del ZStack del path
-    
-    
-    // Nuevos parámetros para las barras laterales
-    let sideBarWidth: CGFloat = 10 // Ancho de cada barra lateral individual
-    let sideBarHeight: CGFloat = 40 // Alto de cada barra lateral individual
-    let sideBarDepth: CGFloat = 6    // Profundidad isométrica de la barra lateral
-    let sideBarSpacing: CGFloat = 6  // Espacio entre barras laterales en un grupo
-    let sideBarGroupOffsetX: CGFloat = 120 // Cuánto se separan del centro del path
-
-    
-    // Propiedades computadas para el progreso
-    var currentOverallProgress: Int {
-        lessons.filter { $0.isCompleted }.count
-    }
-    var totalDisplayableLessons: Int { // Lecciones que se muestran en el progreso (no bloqueadas o un subconjunto)
-        // Podrías tener una lógica más compleja aquí si el path tiene "secciones" o niveles
-        lessons.count // Por ahora, todas las lecciones
-    }
+    private let nodeSize: CGFloat = 70
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) { // Espaciado general del VStack
-                // Header
-                HStack {
-                    Text("Learning Path") // TÚ ACCIÓN: FUENTE
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(headerTextColor)
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(Color.yellow) // TÚ ACCIÓN: COLOR
-                        Text("\(currentOverallProgress)/\(totalDisplayableLessons)") // TÚ ACCIÓN: FUENTE
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(levelColor.opacity(0.1)) // TÚ ACCIÓN: COLOR
-                    .cornerRadius(12)
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                isPressed = true
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    isPressed = false
+                    selectedMilestone = milestone
                 }
-                .padding(.horizontal)
-                .padding(.top, 10)
+            }
+        }) {
+            ZStack {
+                // Shadow
+                Circle()
+                    .fill(Color(UIColor.systemGray.withAlphaComponent(0.3)))
+                    .frame(width: nodeSize, height: nodeSize)
+                    .offset(y: 5)
+                    .blur(radius: 5)
                 
-                // Level header
-                HStack {
-                    Text("LEVEL") // TÚ ACCIÓN: FUENTE
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(levelColor) // TÚ ACCIÓN: COLOR
-                    ZStack {
-                        Image(systemName: "hexagon.fill")
-                            .resizable().scaledToFit().frame(width: 35, height: 35)
-                            .foregroundColor(levelColor) // TÚ ACCIÓN: COLOR
-                        Text("1") // TÚ ACCIÓN: FUENTE (Podrías calcular el nivel)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal)
-
-                GeometryReader { geometry in
-                    let containerWidth = geometry.size.width
-                    let centerX = containerWidth / 2
-
-                    ZStack {
-                        IsometricPatternBackground()
-                        
-                        DynamicIsometricPathLines(
-                            lessons: lessons,
-                            nodeVisualHeight: nodeVisualHeight,
-                            verticalSpacing: verticalSpacingPerNode,
-                            horizontalMagnitude: horizontalZigZagMagnitude, // Pasando el parámetro
-                            containerWidth: containerWidth // Pasando el ancho del contenedor
+                // Main circle in 3D style with gradients and effects
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(milestone.isCompleted ?
+                                      UIColor.systemBlue : UIColor.systemOrange),
+                                Color(milestone.isCompleted ?
+                                      UIColor.systemBlue.withAlphaComponent(0.7) :
+                                      UIColor.systemOrange.withAlphaComponent(0.7))
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-
-                        ForEach(lessons.indices, id: \.self) { index in
-                            let lesson = lessons[index]
-                            IsometricLessonBlock(lesson: lesson)
-                                .frame(width: nodeVisualWidth)
-                                .position(calculateNodePosition(
-                                    forIndex: index,
-                                    totalLessons: lessons.count,
-                                    verticalSpacing: verticalSpacingPerNode,
-                                    horizontalMagnitude: horizontalZigZagMagnitude,
-                                    containerWidth: containerWidth, // Usamos el ancho del GeometryReader
-                                    topPadding: nodeVisualHeight * 0.7 // Ajusta para el primer nodo
-                                ))
-                        }
-                    }
-                    // Altura dinámica para el contenedor del path
-                    .frame(height: max(400, CGFloat(lessons.count) * verticalSpacingPerNode + nodeVisualHeight))
-                }
-                // No necesitas el .padding(.horizontal, pathHorizontalPadding) aquí si el GeometryReader ya ocupa el ancho deseado.
-                // Si quieres que el path esté más centrado, aplica padding al GeometryReader o ajusta el cálculo de centerX.
-                .padding(.horizontal, pathHorizontalPadding) // Mantenemos un padding general para el área del path
-
+                    )
+                    .overlay(
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(UIColor.white.withAlphaComponent(0.6)),
+                                        Color(UIColor.white.withAlphaComponent(0.0))
+                                    ]),
+                                    center: .topLeading,
+                                    startRadius: 0,
+                                    endRadius: nodeSize/2
+                                )
+                            )
+                            .mask(
+                                Circle()
+                                    .padding(4)
+                            )
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                Color(UIColor.white.withAlphaComponent(0.6)),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .frame(width: nodeSize, height: nodeSize)
+                
+                // Icon
+                Image(systemName: milestone.isCompleted ? "checkmark" : "flag.fill")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(color: Color(UIColor.black.withAlphaComponent(0.3)), radius: 1, x: 1, y: 1)
             }
-            .padding(.bottom, 30)
+            .scaleEffect(isPressed ? 0.92 : 1.0)
+            .shadow(
+                color: Color(UIColor.black.withAlphaComponent(0.5)),
+                radius: 10,
+                x: 0,
+                y: 5
+            )
+            .overlay(
+                Text(milestone.title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(UIColor.darkText))
+                    .multilineTextAlignment(.center)
+                    .frame(width: 100)
+                    .padding(.top, 8)
+                    .offset(y: nodeSize / 2 + 10)
+            )
         }
-        .background(pathBackgroundColor.ignoresSafeArea())
-    }
-    
-    // --- Lógica de Posicionamiento Dinámico para los BLOQUES ---
-    func calculateNodePosition(forIndex index: Int, totalLessons: Int, verticalSpacing: CGFloat, horizontalMagnitude: CGFloat, containerWidth: CGFloat, topPadding: CGFloat) -> CGPoint {
-        let yPos = topPadding + CGFloat(index) * verticalSpacing
-        let centerX = containerWidth / 2 // Centro del espacio disponible para el path
-        
-        var xPos = centerX
-        if totalLessons > 1 {
-            if index == 0 { // Primer nodo ligeramente a la izquierda si el siguiente va a la derecha
-                xPos = centerX + ((1 % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0) // Centrado si solo hay 2
-            } else if index == totalLessons - 1 { // Último nodo
-                xPos = centerX + (((totalLessons - 2) % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0) // Centrado si solo hay 2
-            } else { // Nodos intermedios
-                let direction: CGFloat = (index % 2 == 0) ? -0.5 : 0.5
-                xPos = centerX + direction * horizontalMagnitude
-            }
-        }
-        return CGPoint(x: xPos, y: yPos)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
-// MARK: - Subvistas (Tus structs actuales, algunas modificadas)
-
-struct IsometricPatternBackground: View {
-    var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width; let height = geometry.size.height
-            Path { path in
-                let spacing = 30.0
-                for xCoord in stride(from: 0, to: width, by: spacing) {
-                    for yCoord in stride(from: 0, to: height, by: spacing) {
-                        let offsetX = yCoord.truncatingRemainder(dividingBy: (2 * spacing)) == 0 ? 0 : spacing/2
-                        path.addEllipse(in: CGRect(x: xCoord + offsetX, y: yCoord, width: 2, height: 2))
-                    }
-                }
-            }.stroke(Color.gray.opacity(0.2), lineWidth: 1) // Más sutil
-        }
-    }
-}
-
-struct DynamicIsometricPathLines: View {
-    let lessons: [Lesson]
-    let nodeVisualHeight: CGFloat
-    let verticalSpacing: CGFloat
-    let horizontalMagnitude: CGFloat
-    let containerWidth: CGFloat // Ancho del GeometryReader que contiene el path
+// MARK: - ZigZag Path
+struct ZigZagPath: View {
+    let count: Int
+    let width: CGFloat
+    let height: CGFloat
+    let zigzagWidth: CGFloat
     
-    // Lógica de posicionamiento (debe ser idéntica a la de HomeView para los bloques)
-    private func calculateNodePosition(forIndex index: Int) -> CGPoint {
-        let yPos = nodeVisualHeight / 2 + CGFloat(index) * verticalSpacing // Centro Y del nodo
-        let centerX = containerWidth / 2
-        
-        var xPos = centerX
-        if lessons.count > 1 {
-            if index == 0 {
-                xPos = centerX + ((1 % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0)
-            } else if index == lessons.count - 1 {
-                xPos = centerX + (((lessons.count - 2) % 2 == 0) ? -0.25 : 0.25) * horizontalMagnitude * ( (lessons.count > 2) ? 1 : 0)
-            } else {
-                let direction: CGFloat = (index % 2 == 0) ? -0.5 : 0.5
-                xPos = centerX + direction * horizontalMagnitude
-            }
-        }
-        return CGPoint(x: xPos, y: yPos)
-    }
-
     var body: some View {
         Path { path in
-            guard lessons.count > 1 else { return }
-
-            for i in 0..<(lessons.count - 1) {
-                let startPoint = calculateNodePosition(forIndex: i)
-                let endPoint = calculateNodePosition(forIndex: i + 1)
+            let verticalSpacing = height / CGFloat(count + 1)
+            let centerX = width / 2
+            
+            // Start at the top center
+            path.move(to: CGPoint(x: centerX, y: verticalSpacing/2))
+            
+            // Create zigzag pattern
+            for i in 0..<count {
+                let y = verticalSpacing * (CGFloat(i) + 1)
+                let x = centerX + (i % 2 == 0 ? zigzagWidth : -zigzagWidth)
                 
-                path.move(to: startPoint)
-                
-                // Lógica de curva suave (ajusta los puntos de control según sea necesario)
-                let midX = (startPoint.x + endPoint.x) / 2
-                let midY = (startPoint.y + endPoint.y) / 2
-                
-                // Puntos de control para crear una forma de 'S' suave entre nodos
-                let control1X = startPoint.x
-                let control1Y = midY
-                let control2X = endPoint.x
-                let control2Y = midY
-                
-                if abs(startPoint.x - endPoint.x) < 10 { // Si están casi verticales, línea recta
-                    path.addLine(to: endPoint)
+                // Create curved lines
+                if i > 0 {
+                    let prevY = verticalSpacing * CGFloat(i)
+                    let prevX = centerX + ((i-1) % 2 == 0 ? zigzagWidth : -zigzagWidth)
+                    
+                    // Control points for smooth curve
+                    let control1 = CGPoint(x: prevX, y: prevY + verticalSpacing/3)
+                    let control2 = CGPoint(x: x, y: y - verticalSpacing/3)
+                    
+                    path.addCurve(to: CGPoint(x: x, y: y),
+                                  control1: control1,
+                                  control2: control2)
                 } else {
-                    path.addCurve(to: endPoint,
-                                  control1: CGPoint(x: control1X, y: control1Y + (startPoint.y < endPoint.y ? 20 : -20)),
-                                  control2: CGPoint(x: control2X, y: control2Y - (startPoint.y < endPoint.y ? 20 : -20)))
+                    // First segment - straight line or gentle curve
+                    let control1 = CGPoint(x: centerX, y: verticalSpacing/2 + verticalSpacing/3)
+                    let control2 = CGPoint(x: x, y: y - verticalSpacing/3)
+                    
+                    path.addCurve(to: CGPoint(x: x, y: y),
+                                 control1: control1,
+                                 control2: control2)
                 }
             }
         }
         .stroke(
             LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.5), Color.blue.opacity(0.3)]), // TÚ ACCIÓN: COLOR
+                gradient: Gradient(colors: [
+                    Color.azuli,
+                    Color.primaryOrange
+                ]),
                 startPoint: .top,
                 endPoint: .bottom
             ),
-            style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round)
+            style: StrokeStyle(lineWidth:
+                               6, lineCap: .round, lineJoin: .round)
         )
-        // Podrías añadir aquí el marcador de lección activa
-        // calculando la posición del primer `lesson` donde `!isCompleted`.
     }
 }
 
-struct IsometricLessonBlock: View {
-    let lesson: Lesson
-    @State private var isPressed: Bool = false
-    @State private var showLessonView: Bool = false
+// MARK: - Challenge Detail View
+struct ChallengeDetailView: View {
+    let milestone: Milestone
+    @Environment(\.presentationMode) var presentationMode
     
-    var blockColor: Color {
-        lesson.isCompleted ? Color.green.opacity(0.7) : (lesson.type == .locked ? Color.gray.opacity(0.5) : Color.blue.opacity(0.7)) // TÚ ACCIÓN: COLORES
-    }
-    var iconContainerColor: Color { // Para el fondo del ícono si es diferente al bloque
-        lesson.isCompleted ? Color.green : (lesson.type == .locked ? Color.gray : Color.blue)
-    }
-
     var body: some View {
-        VStack(spacing: 6) { // Menor espaciado
+        VStack(spacing: 30) {
+            HStack {
+                Spacer()
+                Button(action: {
+                    presentationMode.wrappedValue.dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+            }
+            
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 60))
+                .foregroundColor(milestone.isCompleted ? Color.azuli : Color.primaryOrange)
+                .padding()
+            
+            Text(milestone.title)
+                .font(.system(size: 26, weight: .bold))
+                .foregroundColor(Color(UIColor.darkText))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Text(milestone.description)
+                .font(.system(size: 18))
+                .foregroundColor(Color(UIColor.darkText.withAlphaComponent(0.8)))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+            
+            if !milestone.isCompleted {
+                Button(action: {
+                    // Action for completing challenge
+                }) {
+                    Text("Start Challenge")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(width: 220)
+                        .background(Color(UIColor.systemOrange))
+                        .cornerRadius(25)
+                        .shadow(color: Color(UIColor.black.withAlphaComponent(0.2)), radius: 5, x: 0, y: 2)
+                }
+                .padding(.top, 20)
+            } else {
+                Text("Challenge Completed")
+                    .font(.headline)
+                    .foregroundColor(Color(UIColor.systemBlue))
+                    .padding(.top, 20)
+            }
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.cream)
+    }
+}
+
+// MARK: - Main View with LandingPage Header
+struct MilestonePathView: View {
+    @State private var milestones: [Milestone] = [
+        Milestone(id: 1, title: "First Challenge", isCompleted: true, description: "This is the first challenge. You've already completed it."),
+        Milestone(id: 2, title: "Pattern Recognition", isCompleted: false, description: "Learn to identify patterns in data structures."),
+        Milestone(id: 3, title: "Problem Solving", isCompleted: false, description: "Apply your knowledge to solve complex problems."),
+        Milestone(id: 4, title: "Final Challenge", isCompleted: false, description: "Put everything together in this final challenge.")
+    ]
+    
+    @State private var selectedMilestone: Milestone? = nil
+    
+    // User stats from LandingPage
+    @State private var userLevel: Int = 5
+    @State private var currentXP: Double = 75
+    @State private var nextLevelXP: Double = 100
+    @State private var totalStars: Int = 125
+    
+    // Colors from LandingPage
+    let primaryTextColor = Color(UIColor(red: 0.17, green: 0.24, blue: 0.31, alpha: 1.0)) // #2C3E50
+    let secondaryTextColor = Color(UIColor(red: 0.5, green: 0.55, blue: 0.55, alpha: 1.0)) // #7F8C8D
+    let levelHexagonColor = Color(UIColor(red: 0.95, green: 0.61, blue: 0.07, alpha: 1.0)) // #F39C12
+    let progressBarColor = Color(UIColor(red: 0.2, green: 0.4, blue: 0.54, alpha: 1.0)) // #33658A
+    let starColor = Color(UIColor(red: 0.95, green: 0.77, blue: 0.06, alpha: 1.0)) // #F1C40F
+    
+    // Constants for zigzag layout
+    private let horizontalZigZagOffset: CGFloat = 80
+    
+    var body: some View {
+        NavigationView {
             ZStack {
-                IsometricBlock(size: 40, depth: 10, color: blockColor) // Bloque más pequeño
-                    .offset(y: isPressed ? 1 : 0)
+                Color.cream.ignoresSafeArea()
                 
-                ZStack { // Contenedor del ícono
-                    // Puedes usar un Circle o Rectangle como fondo del ícono si deseas
-                    // Circle().fill(iconContainerColor.opacity(0.5)).frame(width: 30, height: 30)
+                VStack(spacing: 0) {
+                    // ----- HEADER FROM LANDING PAGE -----
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("NIVEL")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(secondaryTextColor)
+                                .kerning(0.8)
+                            ZStack {
+                                Image(systemName: "hexagon.fill")
+                                    .resizable().scaledToFit().frame(width: 28, height: 28)
+                                    .foregroundColor(levelHexagonColor)
+                                Text("\(userLevel)")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        
+                        GeometryReader { geo in
+                            Capsule()
+                                .fill(progressBarColor.opacity(0.2)).frame(height: 6)
+                                .overlay(alignment: .leading) {
+                                    Capsule().fill(progressBarColor)
+                                        .frame(width: geo.size.width * min(1, max(0, (currentXP / nextLevelXP))), height: 6)
+                                }
+                        }
+                        .frame(height: 6)
+                        .padding(.leading, 8)
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 16)).foregroundColor(starColor)
+                            Text("\(totalStars)")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(primaryTextColor)
+                            Text("+")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(secondaryTextColor)
+                                .offset(y: -3)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, (UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.safeAreaInsets.top ?? 0) > 20 ? 10 : 20)
+                    .padding(.bottom, 15)
+                    .background(Color.cream.ignoresSafeArea())
+                    // ----- END HEADER -----
                     
-                    if lesson.type == .locked {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 13, weight: .bold)) // TÚ ACCIÓN: FUENTE
-                            .foregroundColor(.white.opacity(0.8))
-                    } else {
-                        Image(systemName: lesson.icon)
-                            .font(.system(size: 16, weight: .bold)) // TÚ ACCIÓN: FUENTE
-                            .foregroundColor(.white)
+                    // Original MilestonePathView Content inside ScrollView
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Path Header
+                            HStack {
+                                Text("CHATGPT RESPONDE ASÍ A TUS PREGUNTAS 🤖")
+                                    .font(.system(size: 28, weight: .heavy))
+                                    .foregroundColor(primaryTextColor)
+                                
+                                Spacer()
+                                
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            // Path and milestones
+                            GeometryReader { geometry in
+                                ZStack {
+                                    // Background pattern (optional)
+                                    ForEach(0..<20, id: \.self) { row in
+                                        ForEach(0..<10, id: \.self) { col in
+                                            Circle()
+                                                .fill(Color(UIColor.systemOrange.withAlphaComponent(0.05)))
+                                                .frame(width: 4, height: 4)
+                                                .offset(
+                                                    x: CGFloat(col) * 40 + (row % 2 == 0 ? 20 : 0),
+                                                    y: CGFloat(row) * 40
+                                                )
+                                        }
+                                    }
+                                    
+                                    // ZigZag path
+                                    ZigZagPath(
+                                        count: milestones.count,
+                                        width: geometry.size.width,
+                                        height: geometry.size.height,
+                                        zigzagWidth: horizontalZigZagOffset
+                                    )
+                                    
+                                    // Milestone nodes positioned in ZigZag pattern
+                                    ForEach(0..<milestones.count, id: \.self) { index in
+                                        Milestone3DView(
+                                            milestone: milestones[index],
+                                            selectedMilestone: $selectedMilestone
+                                        )
+                                        .position(
+                                            x: geometry.size.width / 2 + (index % 2 == 0 ? horizontalZigZagOffset : -horizontalZigZagOffset),
+                                            y: geometry.size.height / CGFloat(milestones.count + 1) * CGFloat(index + 1)
+                                        )
+                                    }
+                                }
+                            }
+                            .frame(height: 600) // Set a fixed height for the GeometryReader
+                            .padding(.horizontal, 20)
+                            
+                        }
                     }
                 }
-                .offset(y: isPressed ? 0.5 : -1.5) // Ajuste fino del ícono
             }
-            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0.5, y: 1.5) // Sombra más sutil
-            
-            Text(lesson.title)
-                .font(.system(size: 11, weight: .medium)) // TÚ ACCIÓN: FUENTE
-                .foregroundColor(Color.black.opacity(0.7))
-                .multilineTextAlignment(.center)
-                .frame(width: 90, height: 28) // Ajusta para que el texto quepa
-                .lineLimit(2)
-        }
-        .opacity(lesson.type == .locked ? 0.65 : 1.0)
-        .scaleEffect(isPressed ? 0.97 : 1.0)
-        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
-        .onTapGesture {
-            if lesson.type != .locked {
-                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) { isPressed = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) { isPressed = false }
-                    showLessonView = true
-                }
-            }
-        }
-        .sheet(isPresented: $showLessonView) {
-            if lesson.type != .locked {
-                LessonDetailView(lesson: lesson) // Asume que LessonDetailView está definida
+            .navigationBarHidden(true)
+            .sheet(item: $selectedMilestone) { milestone in
+                ChallengeDetailView(milestone: milestone)
             }
         }
     }
 }
 
-struct IsometricBlock: View {
-    let size: CGFloat; let depth: CGFloat; let color: Color
-    var body: some View {
-        ZStack {
-            Rectangle().fill(color).frame(width: size, height: size)
-            Path { path in path.move(to: CGPoint(x: size/2, y: -size/2)); path.addLine(to: CGPoint(x: size/2 + depth, y: -size/2 + depth/2)); path.addLine(to: CGPoint(x: size/2 + depth, y: size/2 + depth/2)); path.addLine(to: CGPoint(x: size/2, y: size/2)); path.closeSubpath() }.fill(color.opacity(0.85)) // Más opaco para mejor 3D
-            Path { path in path.move(to: CGPoint(x: -size/2, y: -size/2)); path.addLine(to: CGPoint(x: -size/2 + depth, y: -size/2 + depth/2)); path.addLine(to: CGPoint(x: -size/2 + depth, y: size/2 + depth/2)); path.addLine(to: CGPoint(x: -size/2, y: size/2)); path.closeSubpath() }.fill(color.opacity(0.70)) // Más opaco
-        }
+// MARK: - Preview
+struct MilestonePathView_Previews: PreviewProvider {
+    static var previews: some View {
+        MilestonePathView()
     }
-}
-
-// --- Preview ---
-#Preview {
-    HomeView()
 }

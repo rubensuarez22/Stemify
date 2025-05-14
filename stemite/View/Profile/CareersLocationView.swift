@@ -1,121 +1,9 @@
-//
-//  CareersLocationView.swift
-//  stemite
-//
-//  Created by iOS Lab on 13/05/25.
-//
-
+// Modelos necesarios para CareersLocationView
 import SwiftUI
 import MapKit
 import CoreLocation
 
-// MARK: - ViewModel
-class UniversitiesViewModel: ObservableObject {
-    // MARK: - Properties
-    @Published var mapRegion: MKCoordinateRegion
-    @Published var universities: [University] = []
-    @Published var filteredUniversities: [University] = []
-    @Published var selectedUniversity: University?
-    
-    // Map span settings
-    let defaultSpan = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-    let detailSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-    
-    // MARK: - Initialization
-    init(selectedCareer: String, locationManager: CLLocationManager?) {
-        // Initialize with current location or default location
-        if let userLocation = locationManager?.location?.coordinate {
-            self.mapRegion = MKCoordinateRegion(
-                center: userLocation,
-                span: defaultSpan
-            )
-        } else {
-            // Default to Mexico City if user location not available
-            self.mapRegion = MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: 19.4326, longitude: -99.1332),
-                span: defaultSpan
-            )
-        }
-        
-        loadUniversities()
-        filterUniversities(for: selectedCareer)
-    }
-    
-    // MARK: - Methods
-    func loadUniversities() {
-        // In a real app, this would load from an API or database
-        // Sample data for demonstration
-        let sampleUniversities = [
-            University(
-                name: "Universidad Nacional Autónoma de México",
-                coordinate: CLLocationCoordinate2D(latitude: 19.3324, longitude: -99.1871),
-                address: "Av. Universidad 3000, Ciudad Universitaria, Coyoacán",
-                careers: ["Ingeniería en Computación", "Medicina", "Derecho", "Arquitectura"],
-                description: "La UNAM es reconocida como una de las mejores universidades de América Latina, con una amplia oferta académica y programas de investigación.",
-                website: URL(string: "https://www.unam.mx"),
-                imageURL: "https://www.example.com/unam.jpg"
-            ),
-            University(
-                name: "Instituto Politécnico Nacional",
-                coordinate: CLLocationCoordinate2D(latitude: 19.4539, longitude: -99.1772),
-                address: "Av. Luis Enrique Erro S/N, Zacatenco",
-                careers: ["Ingeniería en Computación", "Ingeniería Civil", "Física", "Matemáticas"],
-                description: "El IPN es una institución educativa del Estado creada para consolidar la independencia económica, científica y tecnológica del país.",
-                website: URL(string: "https://www.ipn.mx"),
-                imageURL: "https://www.example.com/ipn.jpg"
-            ),
-            University(
-                name: "Universidad Autónoma Metropolitana",
-                coordinate: CLLocationCoordinate2D(latitude: 19.3705, longitude: -99.0518),
-                address: "Av. San Rafael Atlixco 186, Leyes de Reforma 1ra Sección",
-                careers: ["Diseño", "Ingeniería en Computación", "Sociología", "Economía"],
-                description: "La UAM es una universidad pública mexicana fundada en 1974 con un modelo educativo innovador y flexible.",
-                website: URL(string: "https://www.uam.mx"),
-                imageURL: "https://www.example.com/uam.jpg"
-            ),
-            University(
-                name: "Tecnológico de Monterrey",
-                coordinate: CLLocationCoordinate2D(latitude: 19.2842, longitude: -99.1388),
-                address: "Calle del Puente 222, Ejidos de Huipulco",
-                careers: ["Ingeniería en Computación", "Administración", "Medicina", "Arquitectura"],
-                description: "El Tec de Monterrey es una universidad privada con reconocimiento internacional y enfoque en emprendimiento.",
-                website: URL(string: "https://tec.mx"),
-                imageURL: "https://www.example.com/tec.jpg"
-            ),
-            University(
-                name: "Universidad Iberoamericana",
-                coordinate: CLLocationCoordinate2D(latitude: 19.3702, longitude: -99.2650),
-                address: "Prolongación Paseo de Reforma 880, Lomas de Santa Fe",
-                careers: ["Diseño", "Comunicación", "Derecho", "Psicología"],
-                description: "La Ibero es una universidad jesuita con enfoque humanista y compromiso social.",
-                website: URL(string: "https://ibero.mx"),
-                imageURL: "https://www.example.com/ibero.jpg"
-            )
-        ]
-        
-        self.universities = sampleUniversities
-    }
-    
-    func filterUniversities(for career: String) {
-        self.filteredUniversities = universities.filter { university in
-            university.careers.contains(career)
-        }
-    }
-    
-    func selectUniversity(_ university: University) {
-        self.selectedUniversity = university
-        
-        // Center map on selected university
-        withAnimation(.easeInOut) {
-            mapRegion = MKCoordinateRegion(
-                center: university.coordinate,
-                span: detailSpan
-            )
-        }
-    }
-}
 
-// MARK: - Views
 struct CareersLocationView: View {
     // MARK: - Properties
     @StateObject private var vm: UniversitiesViewModel
@@ -125,6 +13,7 @@ struct CareersLocationView: View {
     @State private var searchResults: [MKMapItem] = []
     @FocusState private var isSearchFocused: Bool
     @State private var currentLocationName: String = "Buscando..."
+    @Environment(\.dismiss) private var dismiss
     
     // Bottom sheet properties
     @State private var sheetHeight: CGFloat = 180
@@ -133,11 +22,15 @@ struct CareersLocationView: View {
     
     // Layout constants
     let maxWidthForIpad: CGFloat = 700
-    let minHeight: CGFloat = 60
+    let minHeight: CGFloat = 300
     let maxHeight: CGFloat = 600
+    let selectedCareer: String
     
     // MARK: - Initialization
     init(selectedCareer: String) {
+        // Guardar la carrera seleccionada
+        self.selectedCareer = selectedCareer
+        
         // Initialize location manager
         let locManager = CLLocationManager()
         locManager.requestWhenInUseAuthorization()
@@ -151,46 +44,92 @@ struct CareersLocationView: View {
     
     // MARK: - Body
     var body: some View {
-        ZStack {
-            // Map layer
-            mapLayer
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header
-                header
-                    .padding()
-                    .frame(maxWidth: maxWidthForIpad)
+        NavigationStack {
+            ZStack {
+                Color.cream
+                    .ignoresSafeArea()
+                // Map layer
+                mapLayer
+                    .ignoresSafeArea(edges: [.leading, .trailing, .bottom])
                 
-                if showSearchField && !searchResults.isEmpty {
-                    searchResultsList
-                        .background(.thinMaterial)
-                        .cornerRadius(10)
+                VStack(spacing: 0) {
+                    // Header
+                    if !showSearchField {
+                        // Este espacio es para que el header no se superponga con la barra de navegación
+                        Spacer().frame(height: 10)
+                    }
+                    
+                    header
                         .padding(.horizontal)
                         .frame(maxWidth: maxWidthForIpad)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                    
+                    if showSearchField && !searchResults.isEmpty {
+                        searchResultsList
+                            .background(.thinMaterial)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                            .frame(maxWidth: maxWidthForIpad)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    
+                    Spacer()
+                    
+                    // Bottom sheet
+                    bottomSheet
+                }
+            }
+            .navigationTitle("Programas de \(selectedCareer)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "arrow.left")
+                            .foregroundColor(Color.azuli)
+                    }
                 }
                 
-                Spacer()
-                
-                // Bottom sheet
-                bottomSheet
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(action: {
+                            // Filtrar solo universidades públicas
+                        }) {
+                            Label("Universidades Públicas", systemImage: "building.columns")
+                        }
+                        
+                        Button(action: {
+                            // Filtrar solo universidades privadas
+                        }) {
+                            Label("Universidades Privadas", systemImage: "building.2")
+                        }
+                        
+                        Button(action: {
+                            // Mostrar todas las universidades
+                        }) {
+                            Label("Todas", systemImage: "list.bullet")
+                        }
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .foregroundColor(Color.azuli)
+                    }
+                }
             }
-        }
-        .sheet(isPresented: $showUniversityDetailView) {
-            if let university = vm.selectedUniversity {
-                UniversityDetailView(university: university)
+            .sheet(isPresented: $showUniversityDetailView) {
+                if let university = vm.selectedUniversity {
+                    UniversityDetailView(university: university)
+                }
             }
-        }
-        .onChange(of: searchText) { newValue in
-            if !newValue.isEmpty {
-                searchForLocations()
-            } else {
-                searchResults = []
+            .onChange(of: searchText) { newValue in
+                if !newValue.isEmpty {
+                    searchForLocations()
+                } else {
+                    searchResults = []
+                }
             }
-        }
-        .onAppear {
-            updateCurrentLocationName(from: vm.mapRegion.center)
+            .onAppear {
+                updateCurrentLocationName(from: vm.mapRegion.center)
+            }
         }
     }
     
@@ -290,6 +229,7 @@ struct CareersLocationView: View {
                     }
                 }
         )
+        
         .animation(isDragging ? nil : .spring(), value: sheetHeight)
     }
     
@@ -420,8 +360,11 @@ struct CareersLocationView: View {
         vm.selectUniversity(university)
         
         withAnimation(.spring()) {
-            if sheetHeight < maxHeight * 0.8 {
-                sheetHeight = 300
+            if sheetHeight < maxHeight * 0.9 {
+                Rectangle()
+                        .fill(Color.cream)
+                        .frame(height: 300)
+                        .offset(y: -1)
             }
         }
     }
@@ -573,121 +516,217 @@ struct UniversityDetailView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                // Header with university name
-                Text(university.name)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .padding(.bottom, 5)
-                
-                // Image
-                if let imageURLString = university.imageURL,
-                   let imageURL = URL(string: imageURLString) {
-                    AsyncImage(url: imageURL) { phase in
-                        switch phase {
-                        case .empty:
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 180)
-                                .overlay(ProgressView())
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 180)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        case .failure:
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 180)
-                                .overlay(
-                                    Image(systemName: "building.columns.fill")
-                                        .font(.system(size: 50))
-                                        .foregroundColor(.secondary)
-                                )
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                } else {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 180)
-                        .overlay(
-                            Image(systemName: "building.columns.fill")
-                                .font(.system(size: 50))
-                                .foregroundColor(.secondary)
-                        )
-                }
-                
-                // Description
-                Text(university.description)
-                    .font(.body)
-                    .padding(.vertical, 5)
-                
-                // Address
-                HStack(alignment: .top) {
-                    Image(systemName: "mappin.and.ellipse")
-                        .foregroundColor(Color.azuli)
-                    Text("Dirección: \(university.address)")
-                }
-                .padding(.vertical, 2)
-                
-                // Available careers section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Carreras Disponibles")
-                        .font(.headline)
-                        .padding(.top, 5)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 15) {
+                    // Header with university name
+                    Text(university.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding(.bottom, 5)
                     
-                    ForEach(university.careers, id: \.self) { career in
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text(career)
+                    // Image
+                    if let imageURLString = university.imageURL,
+                       let imageURL = URL(string: imageURLString) {
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case .empty:
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(height: 180)
+                                    .overlay(ProgressView())
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: 180)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            case .failure:
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(height: 180)
+                                    .overlay(
+                                        Image(systemName: "building.columns.fill")
+                                            .font(.system(size: 50))
+                                            .foregroundColor(.secondary)
+                                    )
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 180)
+                            .overlay(
+                                Image(systemName: "building.columns.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.secondary)
+                            )
+                    }
+                    
+                    // Description
+                    Text(university.description)
+                        .font(.body)
+                        .padding(.vertical, 5)
+                    
+                    // Address
+                    HStack(alignment: .top) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .foregroundColor(Color.azuli)
+                        Text("Dirección: \(university.address)")
+                    }
+                    .padding(.vertical, 2)
+                    
+                    // Available careers section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Carreras Disponibles")
+                            .font(.headline)
+                            .padding(.top, 5)
+                        
+                        ForEach(university.careers, id: \.self) { career in
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color.primaryOrange)
+                                Text(career)
+                            }
                         }
                     }
-                }
-                .padding(.vertical, 5)
-                
-                // Website button
-                if let website = university.website {
-                    Button {
-                        openURL(website)
-                    } label: {
-                        HStack {
-                            Image(systemName: "globe")
-                            Text("Visitar Sitio Web")
+                    .padding(.vertical, 5)
+                    
+                    // Website button
+                    if let website = university.website {
+                        Button {
+                            openURL(website)
+                        } label: {
+                            HStack {
+                                Image(systemName: "globe")
+                                Text("Visitar Sitio Web")
+                            }
+                            .font(.headline)
+                            .foregroundColor(Color.cream)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.azuli)
+                            .cornerRadius(10)
                         }
-                        .font(.headline)
-                        .foregroundColor(Color.cream)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.azuli)
-                        .cornerRadius(10)
+                        .padding(.top, 10)
                     }
-                    .padding(.top, 10)
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+                .padding()
             }
-            .padding()
+            .background(
+                Rectangle()
+                    .fill(Color.cream) // Confirm this is defined correctly
+            )
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("Detalles de Universidad")
-                    .font(.headline)
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.gray)
-                }
-            }
+    }
+}
+
+// Actualizar el ViewModel para aceptar el nuevo tipo de carrera
+class UniversitiesViewModel: ObservableObject {
+    // MARK: - Properties
+    @Published var mapRegion: MKCoordinateRegion
+    @Published var universities: [University] = []
+    @Published var filteredUniversities: [University] = []
+    @Published var selectedUniversity: University?
+    
+    // Map span settings
+    let defaultSpan = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    let detailSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+    
+    // MARK: - Initialization
+    init(selectedCareer: String, locationManager: CLLocationManager?) {
+        // Initialize with current location or default location
+        if let userLocation = locationManager?.location?.coordinate {
+            self.mapRegion = MKCoordinateRegion(
+                center: userLocation,
+                span: defaultSpan
+            )
+        } else {
+            // Default to Mexico City if user location not available
+            self.mapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 19.4326, longitude: -99.1332),
+                span: defaultSpan
+            )
+        }
+        
+        loadUniversities()
+        filterUniversities(for: selectedCareer)
+    }
+    
+    // MARK: - Methods
+    func loadUniversities() {
+        // In a real app, this would load from an API or database
+        // Sample data for demonstration
+        let sampleUniversities = [
+            University(
+                name: "Universidad Nacional Autónoma de México",
+                coordinate: CLLocationCoordinate2D(latitude: 19.3324, longitude: -99.1871),
+                address: "Av. Universidad 3000, Ciudad Universitaria, Coyoacán",
+                careers: ["Ingeniería en Computación", "Medicina", "Derecho", "Arquitectura"],
+                description: "La UNAM es reconocida como una de las mejores universidades de América Latina, con una amplia oferta académica y programas de investigación.",
+                website: URL(string: "https://www.unam.mx"),
+                imageURL: "https://www.example.com/unam.jpg"
+            ),
+            University(
+                name: "Instituto Politécnico Nacional",
+                coordinate: CLLocationCoordinate2D(latitude: 19.4539, longitude: -99.1772),
+                address: "Av. Luis Enrique Erro S/N, Zacatenco",
+                careers: ["Ingeniería en Computación", "Ingeniería Civil", "Física", "Matemáticas"],
+                description: "El IPN es una institución educativa del Estado creada para consolidar la independencia económica, científica y tecnológica del país.",
+                website: URL(string: "https://www.ipn.mx"),
+                imageURL: "https://www.example.com/ipn.jpg"
+            ),
+            University(
+                name: "Universidad Autónoma Metropolitana",
+                coordinate: CLLocationCoordinate2D(latitude: 19.3705, longitude: -99.0518),
+                address: "Av. San Rafael Atlixco 186, Leyes de Reforma 1ra Sección",
+                careers: ["Diseño", "Ingeniería en Computación", "Sociología", "Economía"],
+                description: "La UAM es una universidad pública mexicana fundada en 1974 con un modelo educativo innovador y flexible.",
+                website: URL(string: "https://www.uam.mx"),
+                imageURL: "https://www.example.com/uam.jpg"
+            ),
+            University(
+                name: "Tecnológico de Monterrey",
+                coordinate: CLLocationCoordinate2D(latitude: 19.2842, longitude: -99.1388),
+                address: "Calle del Puente 222, Ejidos de Huipulco",
+                careers: ["Ingeniería en Computación", "Administración", "Medicina", "Arquitectura"],
+                description: "El Tec de Monterrey es una universidad privada con reconocimiento internacional y enfoque en emprendimiento.",
+                website: URL(string: "https://tec.mx"),
+                imageURL: "https://www.example.com/tec.jpg"
+            ),
+            University(
+                name: "Universidad Iberoamericana",
+                coordinate: CLLocationCoordinate2D(latitude: 19.3702, longitude: -99.2650),
+                address: "Prolongación Paseo de Reforma 880, Lomas de Santa Fe",
+                careers: ["Diseño", "Comunicación", "Derecho", "Psicología"],
+                description: "La Ibero es una universidad jesuita con enfoque humanista y compromiso social.",
+                website: URL(string: "https://ibero.mx"),
+                imageURL: "https://www.example.com/ibero.jpg"
+            )
+        ]
+        
+        self.universities = sampleUniversities
+    }
+    
+    func filterUniversities(for career: String) {
+        self.filteredUniversities = universities.filter { university in
+            university.careers.contains(career)
+        }
+    }
+    
+    func selectUniversity(_ university: University) {
+        self.selectedUniversity = university
+        
+        // Center map on selected university
+        withAnimation(.easeInOut) {
+            mapRegion = MKCoordinateRegion(
+                center: university.coordinate,
+                span: detailSpan
+            )
         }
     }
 }

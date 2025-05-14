@@ -124,7 +124,7 @@ struct ProfileView: View {
             Text("Basado en tus habilidades e intereses")
                 .font(.subheadline)
                 .foregroundColor(.gray)
-                .padding(.bottom, 10)
+                .padding(.bottom, 40)
             
             HStack(alignment: .top, spacing: 15) {
                 // Second Place - Electrical Engineering
@@ -159,10 +159,9 @@ struct ProfileView: View {
                     position: "3er LUGAR"
                 )
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 5)
+
         }
-        .padding()
+
     }
     
     // Career Card
@@ -205,7 +204,7 @@ struct ProfileView: View {
                 
                 Spacer()
             }
-            .frame(height: 140)
+            .frame(height: 160)
             .padding(.top, 10)
             .padding(.horizontal, 10)
             .background(
